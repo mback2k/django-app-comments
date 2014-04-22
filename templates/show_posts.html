@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block navigation %}
+  <li><a href="{% url 'software:show_home' %}" title="Home">Home</a></li>
+  <li><a href="{% url 'downloads:show_downloads' %}" title="Downloads">Downloads</a></li>
+  <li{% if category == 'discussion' %} class="active"{% endif %}><a href="{% url 'comments:show_threads' 'discussion' %}" title="Discussions">Discussions</a></li>
+  <li{% if category == 'request' %} class="active"{% endif %}><a href="{% url 'comments:show_threads' 'request' %}" title="Requests">Requests</a></li>
+  <li{% if category == 'issue' %} class="active"{% endif %}><a href="{% url 'comments:show_threads' 'issue' %}" title="Issues">Issues</a></li>
+  {{ block.super }}
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-12">
+      <ul class="pagination pull-right">
+         <li><a href="#">&laquo;</a></li>
+         <li><a href="#">1</a></li>
+         <li><a href="#">2</a></li>
+         <li><a href="#">3</a></li>
+         <li><a href="#">4</a></li>
+         <li><a href="#">5</a></li>
+         <li><a href="#">&raquo;</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <ul class="media-list">
+            <li class="media">
+              {% with post=thread.first_post %}
+              {% include "post.html" %}
+              {% endwith %}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <ul class="pagination pull-right">
+         <li><a href="#">&laquo;</a></li>
+         <li><a href="#">1</a></li>
+         <li><a href="#">2</a></li>
+         <li><a href="#">3</a></li>
+         <li><a href="#">4</a></li>
+         <li><a href="#">5</a></li>
+         <li><a href="#">&raquo;</a></li>
+      </ul>
+    </div>
+  </div>
+{% endblock %}
