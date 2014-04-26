@@ -10,19 +10,7 @@
 {% endblock %}
 
 {% block content %}
-  <div class="row">
-    <div class="col-md-12">
-      <ul class="pagination pull-right">
-         <li><a href="#">&laquo;</a></li>
-         <li><a href="#">1</a></li>
-         <li><a href="#">2</a></li>
-         <li><a href="#">3</a></li>
-         <li><a href="#">4</a></li>
-         <li><a href="#">5</a></li>
-         <li><a href="#">&raquo;</a></li>
-      </ul>
-    </div>
-  </div>
+  <hr />
   <div class="row">
     <div class="col-md-12">
       <div class="panel panel-default">
@@ -30,25 +18,12 @@
           <ul class="media-list">
             <li class="media">
               {% with post=thread.first_post %}
-              {% include "post.html" %}
+              {% include "includes/post.html" %}
               {% endwith %}
             </li>
           </ul>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-12">
-      <ul class="pagination pull-right">
-         <li><a href="#">&laquo;</a></li>
-         <li><a href="#">1</a></li>
-         <li><a href="#">2</a></li>
-         <li><a href="#">3</a></li>
-         <li><a href="#">4</a></li>
-         <li><a href="#">5</a></li>
-         <li><a href="#">&raquo;</a></li>
-      </ul>
     </div>
   </div>
 {% endblock %}

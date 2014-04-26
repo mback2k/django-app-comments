@@ -11,46 +11,19 @@
 {% endblock %}
 
 {% block content %}
+  <hr />
   <div class="row">
     <div class="col-md-12">
-      <ul class="pagination pull-right">
-         <li><a href="#">&laquo;</a></li>
-         <li><a href="#">1</a></li>
-         <li><a href="#">2</a></li>
-         <li><a href="#">3</a></li>
-         <li><a href="#">4</a></li>
-         <li><a href="#">5</a></li>
-         <li><a href="#">&raquo;</a></li>
-      </ul>
+      {% for thread in threads %}
+        {% include "includes/thread.html" %}
+      {% endfor %}
     </div>
   </div>
   <div class="row">
     <div class="col-md-12">
-      <div class="panel panel-default">
-        <div class="panel-body">
-          <ul class="media-list">
-            {% for thread in threads %}
-            <li class="media">
-              {% with post=thread.first_post %}
-              {% include "thread.html" %}
-              {% endwith %}
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-12">
-      <ul class="pagination pull-right">
-         <li><a href="#">&laquo;</a></li>
-         <li><a href="#">1</a></li>
-         <li><a href="#">2</a></li>
-         <li><a href="#">3</a></li>
-         <li><a href="#">4</a></li>
-         <li><a href="#">5</a></li>
-         <li><a href="#">&raquo;</a></li>
+      <ul class="pager">
+        <li class="previous"><a href="#">&larr; Newer</a></li>
+        <li class="next"><a href="#">Older &rarr;</a></li>
       </ul>
     </div>
   </div>

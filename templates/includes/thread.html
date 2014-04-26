@@ -1,0 +1,17 @@
+{% load jdatetime %}
+{% with post=thread.first_post %}
+<div class="panel panel-default">
+  <div class="panel-body">
+    <div class="media">
+      <div class="pull-left">
+        <img class="media-object" src="{{ post.author.avatar }}" alt="{{ post.author.username }}" style="height: 64px; width: 64px">
+      </div>
+      <div class="media-body">
+        <h4 class="media-heading">{{ post.author.first_name }} wrote on {{ post.crdate|localedatetime }}</h4>
+        <p style="min-height: 29px">{{ post.content }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="panel-footer"><a href="{% url 'comments:show_posts' thread.category thread.id %}">{{ thread.posts.count }} comments &rarr;</a></div>
+</div>
+{% endwith %}

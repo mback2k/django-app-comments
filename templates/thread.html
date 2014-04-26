@@ -1,8 +1,0 @@
-{% load jdatetime %}
-<div class="pull-left">
-  <img class="media-object" src="{{ post.author.avatar }}" alt="{{ post.author.username }}">
-</div>
-<div class="media-body">
-  <h4 class="media-heading">{{ post.author.username }} wrote on {{ post.crdate|localedatetime }}</h4>
-  {{ post.content }}
-</div>
