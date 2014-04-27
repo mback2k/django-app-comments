@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrapform %}
 
 {% block navigation %}
   <li><a href="{% url 'software:show_home' %}" title="Home">Home</a></li>
@@ -13,28 +14,16 @@
   <hr />
   <div class="row">
     <div class="col-md-12">
-      <p class="text-right">
-        <a href="{% url 'comments:new_post' category %}" class="btn btn-primary" role="button" title="New {{ category }}">
-          <span class="glyphicon glyphicon-comment"></span> New {{ category }}
-        </a>
-      </p>
-      {% for thread in threads %}
-        {% include "includes/thread.html" %}
-      {% endfor %}
+      <form class="form-horizontal" method="post" role="form">
+        {% csrf_token %}
+        {{ post_form|bootstrapform }}
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10 btn-group">
+            <input type="submit" value="Submit" class="btn btn-primary" />
+            <input type="reset" value="Reset" class="btn btn-default" />
+          </div>
+        </div>
+      </form>
     </div>
   </div>
-  {% if threads.has_other_pages %}
-  <div class="row">
-    <div class="col-md-12">
-      <ul class="pager">
-        {% if threads.has_previous %}
-        <li class="previous"><a href="?page={{ threads.previous_page_number }}">&larr; Newer</a></li>
-        {% endif %}
-        {% if threads.has_next %}
-        <li class="next"><a href="?page={{ threads.next_page_number }}">Older &rarr;</a></li>
-        {% endif %}
-      </ul>
-    </div>
-  </div>
-  {% endif %}
 {% endblock %}

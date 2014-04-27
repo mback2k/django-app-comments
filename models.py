@@ -44,7 +44,7 @@ class Thread(models.Model):
 class Post(models.Model):
     parent = models.ForeignKey('self', related_name='posts', blank=True, null=True)
     thread = models.ForeignKey(Thread, related_name='posts')
-    author = models.ForeignKey(Author)
+    author = models.ForeignKey(Author, related_name='posts')
 
     content = models.TextField(_('content'))
 

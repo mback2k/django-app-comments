@@ -1,20 +1,22 @@
 <div class="pull-right">
 {% if user.is_authenticated %}
   <div class="btn-group">
-    <button type="button" class="btn btn-default btn-xs" title="Vote up"><span class="glyphicon glyphicon-chevron-up"></span></button>
-    <button type="button" class="btn btn-default btn-xs" title="Vote down"><span class="glyphicon glyphicon-chevron-down"></span></button>
+    <a href="#" class="btn btn-default btn-xs" role="button" title="Vote up"><span class="glyphicon glyphicon-chevron-up"></span></a>
+    <a href="#" class="btn btn-default btn-xs" role="button" title="Vote down"><span class="glyphicon glyphicon-chevron-down"></span></a>
     {% if user == post.author %}
-    <button type="button" class="btn btn-default btn-xs" title="Edit"><span class="glyphicon glyphicon-edit"></span> Edit</button>
+    <a href="#" class="btn btn-default btn-xs" role="button" title="Edit"><span class="glyphicon glyphicon-edit"></span> Edit</a>
     {% endif %}
-    <button type="button" class="btn btn-primary btn-xs" title="Reply"><span class="glyphicon glyphicon-comment"></span> Reply</button>
-    <button type="button" class="btn btn-default btn-xs" title="Link"><span class="glyphicon glyphicon-share"></span> Link</button>
+    <a href="{% url 'comments:reply_post' post.thread.category post.thread.id post.id %}" class="btn btn-primary btn-xs" role="button" title="Reply">
+      <span class="glyphicon glyphicon-comment"></span> Reply
+    </a>
+    <a href="#" class="btn btn-default btn-xs" role="button" title="Link"><span class="glyphicon glyphicon-share"></span> Link</a>
   </div>
   {% if perms.comments.change_post %}
   &nbsp;
   <div class="btn-group">
-    <button type="button" class="btn btn-default btn-xs" title="Approve"><span class="glyphicon glyphicon-ok"></span> Approve</button>
-    <button type="button" class="btn btn-default btn-xs" title="Spam"><span class="glyphicon glyphicon-ban-circle"></span> Spam</button>
-    <button type="button" class="btn btn-default btn-xs" title="Delete"><span class="glyphicon glyphicon-trash"></span> Delete</button>
+    <a href="#" class="btn btn-default btn-xs" role="button" title="Approve"><span class="glyphicon glyphicon-ok"></span> Approve</a>
+    <a href="#" class="btn btn-default btn-xs" role="button" title="Spam"><span class="glyphicon glyphicon-ban-circle"></span> Spam</a>
+    <a href="#" class="btn btn-default btn-xs" role="button" title="Delete"><span class="glyphicon glyphicon-trash"></span> Delete</a>
   </div>
   {% endif %}
 {% endif %}
