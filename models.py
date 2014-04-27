@@ -18,18 +18,18 @@ class Author(User):
 
 class Thread(models.Model):
     CATEGORIES = (
-        ('discussion', _('discussion')),
-        ('request',    _('request')),
-        ('issue',      _('issue')),
+        ('discussion', _('Discussion')),
+        ('request',    _('Request')),
+        ('issue',      _('Issue')),
     )
 
-    category = models.CharField(_('category'), max_length=20, choices=CATEGORIES, default='discussion')
+    category = models.CharField(_('Category'), max_length=20, choices=CATEGORIES, default='discussion')
 
-    crdate = models.DateTimeField(_('date created'), auto_now_add=True)
-    tstamp = models.DateTimeField(_('date edited'), auto_now=True)
+    crdate = models.DateTimeField(_('Date created'), auto_now_add=True)
+    tstamp = models.DateTimeField(_('Date edited'), auto_now=True)
 
-    is_closed = models.BooleanField(_('is closed'), blank=True, default=False)
-    is_deleted = models.BooleanField(_('is deleted'), blank=True, default=False)
+    is_closed = models.BooleanField(_('Is closed'), blank=True, default=False)
+    is_deleted = models.BooleanField(_('Is deleted'), blank=True, default=False)
 
     class Meta:
         ordering = ('-crdate', '-tstamp')
@@ -46,16 +46,16 @@ class Post(models.Model):
     thread = models.ForeignKey(Thread, related_name='posts')
     author = models.ForeignKey(Author, related_name='posts')
 
-    content = models.TextField(_('content'))
+    content = models.TextField(_('Comment'))
 
-    crdate = models.DateTimeField(_('date created'), auto_now_add=True)
-    tstamp = models.DateTimeField(_('date edited'), auto_now=True)
+    crdate = models.DateTimeField(_('Date created'), auto_now_add=True)
+    tstamp = models.DateTimeField(_('Date edited'), auto_now=True)
 
-    is_deleted = models.BooleanField(_('is deleted'), blank=True, default=False)
-    is_approved = models.BooleanField(_('is approved'), blank=True, default=False)
-    is_flagged = models.BooleanField(_('is flagged'), blank=True, default=False)
-    is_spam = models.BooleanField(_('is spam'), blank=True, default=False)
-    is_highlighted = models.BooleanField(_('is highlighted'), blank=True, default=False)
+    is_deleted = models.BooleanField(_('Is deleted'), blank=True, default=False)
+    is_approved = models.BooleanField(_('Is approved'), blank=True, default=False)
+    is_flagged = models.BooleanField(_('Is flagged'), blank=True, default=False)
+    is_spam = models.BooleanField(_('Is spam'), blank=True, default=False)
+    is_highlighted = models.BooleanField(_('Is highlighted'), blank=True, default=False)
 
     class Meta:
         ordering = ('-crdate', '-tstamp')
