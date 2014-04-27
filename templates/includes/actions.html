@@ -1,0 +1,21 @@
+<div class="pull-right">
+{% if user.is_authenticated %}
+  <div class="btn-group">
+    <button type="button" class="btn btn-default btn-xs" title="Vote up"><span class="glyphicon glyphicon-chevron-up"></span></button>
+    <button type="button" class="btn btn-default btn-xs" title="Vote down"><span class="glyphicon glyphicon-chevron-down"></span></button>
+    {% if user == post.author %}
+    <button type="button" class="btn btn-default btn-xs" title="Edit"><span class="glyphicon glyphicon-edit"></span> Edit</button>
+    {% endif %}
+    <button type="button" class="btn btn-primary btn-xs" title="Reply"><span class="glyphicon glyphicon-comment"></span> Reply</button>
+    <button type="button" class="btn btn-default btn-xs" title="Link"><span class="glyphicon glyphicon-share"></span> Link</button>
+  </div>
+  {% if perms.comments.change_post %}
+  &nbsp;
+  <div class="btn-group">
+    <button type="button" class="btn btn-default btn-xs" title="Approve"><span class="glyphicon glyphicon-ok"></span> Approve</button>
+    <button type="button" class="btn btn-default btn-xs" title="Spam"><span class="glyphicon glyphicon-ban-circle"></span> Spam</button>
+    <button type="button" class="btn btn-default btn-xs" title="Delete"><span class="glyphicon glyphicon-trash"></span> Delete</button>
+  </div>
+  {% endif %}
+{% endif %}
+</div>

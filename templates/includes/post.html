@@ -1,10 +1,13 @@
 {% load jdatetime %}
 <div class="pull-left">
-  <img class="media-object" src="{{ post.author.avatar }}" alt="{{ post.author.username }}" style="height: 64px; width: 64px">
+  <img class="media-object img-rounded" src="{{ post.author.avatar }}" alt="{{ post.author.username }}">
 </div>
 <div class="media-body">
-  <h4 class="media-heading">{{ post.author.first_name }} wrote on {{ post.crdate|localedatetime }}</h4>
-  <p style="min-height: 29px">{{ post.content }}</p>
+  <p class="pull-right">{{ post.crdate|localedatetime }}</p>
+  <h4 class="media-heading">{{ post.author.first_name }} wrote:</h4>
+  <p>{{ post.content }}</p>
+  {% include "includes/actions.html" %}
+  <hr />
   <div class="media">
     {% for subpost in post.posts.all %}
       {% with post=subpost template_name="includes/post.html" %}
