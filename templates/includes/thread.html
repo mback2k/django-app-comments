@@ -13,7 +13,7 @@
           {% endif %}
         </small></p>
         <h4 class="media-heading">{% firstof post.author.first_name post.author.username %} wrote:</h4>
-        <p>{{ post.content }}</p>
+        {{ post.cleaned_content|safe }}
       </div>
     </div>
   </div>

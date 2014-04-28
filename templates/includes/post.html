@@ -11,7 +11,7 @@
       {% endif %}
     </small></p>
     <h4 class="media-heading">{% firstof post.author.first_name post.author.username %} wrote:</h4>
-    <p>{{ post.content }}</p>
+    {{ post.cleaned_content|safe }}
     <p class="pull-left text-muted">
       {% if post.votes.exists %}<small>
         <span class="glyphicon glyphicon-star"></span> {{ post.vote_sum }}

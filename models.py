@@ -3,7 +3,8 @@ from django.db import models
 from django.core.cache import cache
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
+from django.utils import timezone, html
+from lxml.html import clean
 import urllib, hashlib, datetime
 
 class Author(User):
@@ -52,6 +53,7 @@ class Post(models.Model):
     author = models.ForeignKey(Author, related_name='posts')
 
     content = models.TextField(_('Comment'))
+    content_cleaned = models.TextField(null=True, editable=False)
 
     crdate = models.DateTimeField(_('Date created'), auto_now_add=True)
     tstamp = models.DateTimeField(_('Date changed'), auto_now=True)
@@ -63,11 +65,36 @@ class Post(models.Model):
     is_spam = models.BooleanField(_('Is spam'), blank=True, default=False)
     is_highlighted = models.BooleanField(_('Is highlighted'), blank=True, default=False)
 
+    cleaner = clean.Cleaner(allow_tags=('br', 'p', 'a', 'b', 'i', 'strong', 'em'),
+                            remove_unknown_tags=False, style=True, links=True,
+                            page_structure=True, safe_attrs_only=True, add_nofollow=True)
+
     class Meta:
         ordering = ('-crdate', '-tstamp')
 
     def __unicode__(self):
         return self.content
+
+    def clean_content(self, commit=True):
+        cleaned_content = self.content
+        cleaned_content = cleaned_content.replace('<p>', '')
+        cleaned_content = cleaned_content.replace('</p>', '\n\n')
+        cleaned_content = cleaned_content.replace('<br>', '\n')
+        cleaned_content = cleaned_content.replace('<br />', '\n')
+        cleaned_content = html.linebreaks(cleaned_content)
+        cleaned_content = html.clean_html(cleaned_content)
+        cleaned_content = clean.autolink_html(cleaned_content)
+        cleaned_content = self.cleaner.clean_html(cleaned_content)
+        self.content_cleaned = cleaned_content
+        if commit and self.pk:
+            self.save(update_fields=('content_cleaned',))
+        return self.content_cleaned
+
+    @property
+    def cleaned_content(self):
+        if not self.content_cleaned:
+            self.clean_content()
+        return self.content_cleaned
 
     @property
     def active_posts(self):
