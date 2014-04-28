@@ -1,6 +1,6 @@
 <div class="pull-right">
-{% if user.is_authenticated %}
   <div class="btn-group">
+    {% if user.is_authenticated %}
     {% if user.pk == post.author.pk and post.is_editable %}
     <a href="{% url 'comments:edit_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs" role="button" title="Edit">
       <span class="glyphicon glyphicon-edit"></span> Edit
@@ -15,10 +15,12 @@
     <a href="{% url 'comments:reply_post' post.thread.category post.thread.id post.id %}" class="btn btn-primary btn-xs" role="button" title="Reply">
       <span class="glyphicon glyphicon-comment"></span> Reply
     </a>
+    {% endif %}
     <a href="{% url 'comments:show_posts' post.thread.category post.thread.id %}#p{{ post.id }}" class="btn btn-default btn-xs" role="button" title="Link">
       <span class="glyphicon glyphicon-share"></span> Link
     </a>
   </div>
+  {% if user.is_authenticated %}
   {% if perms.comments.change_post or perms.comments.delete_post %}
   &nbsp;
   <div class="btn-group">
@@ -37,5 +39,5 @@
     {% endif %}
   </div>
   {% endif %}
-{% endif %}
+  {% endif %}
 </div>
