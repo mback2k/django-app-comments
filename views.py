@@ -15,7 +15,7 @@ def show_threads(request, category):
     else:
         thread_list = Thread.objects.filter(category=category)
 
-    paginator = Paginator(thread_list, 25)
+    paginator = Paginator(thread_list, 10)
     page = request.GET.get('page')
     try:
         threads = paginator.page(page)
