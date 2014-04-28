@@ -90,6 +90,8 @@ def reply_post(request, category, thread_id, parent_id):
     template_values = {
         'category': category,
         'post_form': post_form,
+        'thread': thread,
+        'parent': parent,
     }
 
     return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))
