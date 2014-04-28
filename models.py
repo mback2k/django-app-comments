@@ -3,7 +3,8 @@ from django.db import models
 from django.core.cache import cache
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
-import urllib, hashlib
+from django.utils import timezone
+import urllib, hashlib, datetime
 
 class Author(User):
     class Meta:
@@ -26,7 +27,7 @@ class Thread(models.Model):
     category = models.CharField(_('Category'), max_length=20, choices=CATEGORIES, default='discussion')
 
     crdate = models.DateTimeField(_('Date created'), auto_now_add=True)
-    tstamp = models.DateTimeField(_('Date edited'), auto_now=True)
+    tstamp = models.DateTimeField(_('Date changed'), auto_now=True)
 
     is_closed = models.BooleanField(_('Is closed'), blank=True, default=False)
     is_deleted = models.BooleanField(_('Is deleted'), blank=True, default=False)
@@ -41,6 +42,10 @@ class Thread(models.Model):
     def first_post(self):
         return self.posts.filter(parent=None).last()
 
+    @property
+    def first_active_post(self):
+        return self.posts.filter(parent=None).exclude(is_deleted=True).exclude(is_spam=True).filter(is_approved=True).last()
+
 class Post(models.Model):
     parent = models.ForeignKey('self', related_name='posts', blank=True, null=True)
     thread = models.ForeignKey(Thread, related_name='posts')
@@ -49,7 +54,8 @@ class Post(models.Model):
     content = models.TextField(_('Comment'))
 
     crdate = models.DateTimeField(_('Date created'), auto_now_add=True)
-    tstamp = models.DateTimeField(_('Date edited'), auto_now=True)
+    tstamp = models.DateTimeField(_('Date changed'), auto_now=True)
+    edited = models.DateTimeField(_('Date edited'), blank=True, null=True)
 
     is_deleted = models.BooleanField(_('Is deleted'), blank=True, default=False)
     is_approved = models.BooleanField(_('Is approved'), blank=True, default=False)
@@ -62,3 +68,34 @@ class Post(models.Model):
 
     def __unicode__(self):
         return self.content
+
+    @property
+    def active_posts(self):
+        return self.posts.exclude(is_deleted=True).exclude(is_spam=True).filter(is_approved=True)
+
+    @property
+    def is_editable(self):
+        if self.thread.is_closed:
+            return False
+        if self.crdate < timezone.now() - datetime.timedelta(days=1):
+            return False
+        if self.posts.exists():
+            return False
+        return True
+
+    @property
+    def vote_sum(self):
+        return self.votes.aggregate(vote_sum=models.Sum('mode'))['vote_sum']
+
+class Vote(models.Model):
+    CATEGORIES = (
+        ( 1, _('Up')),
+        (-1, _('Down')),
+    )
+
+    post = models.ForeignKey(Post, related_name='votes')
+    user = models.ForeignKey(User, related_name='votes')
+    mode = models.SmallIntegerField(_('Mode'))
+
+    class Meta:
+        unique_together = ('post', 'user')

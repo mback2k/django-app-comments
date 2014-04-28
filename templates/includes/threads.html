@@ -1,0 +1,11 @@
+{% for thread in threads %}
+  {% if perms.comments.change_post or perms.comments.delete_post %}
+    {% if thread.first_post %}
+      {% include "includes/thread.html" with post=thread.first_post %}
+    {% endif %}
+  {% else %}
+    {% if thread.first_active_post %}
+      {% include "includes/thread.html" with post=thread.first_active_post %}
+    {% endif %}
+  {% endif %}
+{% endfor %}

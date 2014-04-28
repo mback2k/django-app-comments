@@ -1,0 +1,5 @@
+{% for post in posts %}
+  {% with template_name="includes/post.html" %}
+  {% include template_name %}
+  {% endwith %}
+{% endfor %}

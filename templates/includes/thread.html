@@ -1,14 +1,18 @@
 {% load jdatetime %}
-{% with post=thread.first_post %}
-<div class="panel panel-default">
+<div class="panel panel-default{% if not post.is_approved %} panel-info{% endif %}{% if post.is_spam %} text-muted panel-warning{% endif %}{% if post.is_deleted %} text-muted panel-danger{% endif %}">
   <div class="panel-body">
     <div class="media">
       <div class="pull-left">
         <img class="media-object img-rounded" src="{{ post.author.avatar }}" alt="{{ post.author.username }}">
       </div>
-      <div class="media-body">
-        <p class="pull-right">{{ post.crdate|localedatetime }}</p>
-        <h4 class="media-heading">{{ post.author.first_name }} wrote:</h4>
+      <div class="media-body" id="p{{ post.id }}">
+        <p class="pull-right text-right"><small>
+          Posted on {{ post.crdate|localedatetime }}
+          {% if post.edited %}<br />
+          Edited on {{ post.edited|localedatetime }}
+          {% endif %}
+        </small></p>
+        <h4 class="media-heading">{% firstof post.author.first_name post.author.username %} wrote:</h4>
         <p>{{ post.content }}</p>
       </div>
     </div>
@@ -20,4 +24,3 @@
     </a>
   </div>
 </div>
-{% endwith %}

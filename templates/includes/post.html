@@ -1,18 +1,28 @@
 {% load jdatetime %}
-<div class="pull-left">
-  <img class="media-object img-rounded" src="{{ post.author.avatar }}" alt="{{ post.author.username }}">
-</div>
-<div class="media-body">
-  <p class="pull-right">{{ post.crdate|localedatetime }}</p>
-  <h4 class="media-heading">{{ post.author.first_name }} wrote:</h4>
-  <p>{{ post.content }}</p>
-  {% include "includes/actions.html" %}
-  <hr />
-  <div class="media">
-    {% for subpost in post.posts.all %}
-      {% with post=subpost template_name="includes/post.html" %}
-      {% include template_name %}
-      {% endwith %}
-    {% endfor %}
+<div class="media {% if not post.is_approved %} bg-info{% endif %}{% if post.is_spam %} text-muted bg-warning{% endif %}{% if post.is_deleted %} text-muted bg-danger{% endif %}" id="p{{ post.id }}">
+  <div class="pull-left">
+    <img class="media-object img-rounded" src="{{ post.author.avatar }}" alt="{{ post.author.username }}">
+  </div>
+  <div class="media-body">
+    <p class="pull-right text-right"><small>
+      Posted on {{ post.crdate|localedatetime }}
+      {% if post.edited %}<br />
+      Edited on {{ post.edited|localedatetime }}
+      {% endif %}
+    </small></p>
+    <h4 class="media-heading">{% firstof post.author.first_name post.author.username %} wrote:</h4>
+    <p>{{ post.content }}</p>
+    <p class="pull-left text-muted">
+      {% if post.votes.exists %}<small>
+        <span class="glyphicon glyphicon-star"></span> {{ post.vote_sum }}
+      </small>{% endif %}
+    </p>
+    {% include "includes/actions.html" %}
+    <hr />
+    {% if perms.comments.change_post or perms.comments.delete_post %}
+      {% include "includes/posts.html" with posts=post.posts.all %}
+    {% else %}
+      {% include "includes/posts.html" with posts=post.active_posts.all %}
+    {% endif %}
   </div>
 </div>

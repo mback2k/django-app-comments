@@ -1,22 +1,40 @@
 <div class="pull-right">
 {% if user.is_authenticated %}
   <div class="btn-group">
-    <a href="#" class="btn btn-default btn-xs" role="button" title="Vote up"><span class="glyphicon glyphicon-chevron-up"></span></a>
-    <a href="#" class="btn btn-default btn-xs" role="button" title="Vote down"><span class="glyphicon glyphicon-chevron-down"></span></a>
-    {% if user == post.author %}
-    <a href="#" class="btn btn-default btn-xs" role="button" title="Edit"><span class="glyphicon glyphicon-edit"></span> Edit</a>
+    {% if user.pk == post.author.pk and post.is_editable %}
+    <a href="{% url 'comments:edit_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs" role="button" title="Edit">
+      <span class="glyphicon glyphicon-edit"></span> Edit
+    </a>
     {% endif %}
+    <a href="{% url 'comments:vote_post' post.thread.category post.thread.id post.id 'up' %}" class="btn btn-default btn-xs" role="button" title="Vote up">
+      <span class="glyphicon glyphicon-chevron-up"></span>
+    </a>
+    <a href="{% url 'comments:vote_post' post.thread.category post.thread.id post.id 'down' %}" class="btn btn-default btn-xs" role="button" title="Vote down">
+      <span class="glyphicon glyphicon-chevron-down"></span>
+    </a>
     <a href="{% url 'comments:reply_post' post.thread.category post.thread.id post.id %}" class="btn btn-primary btn-xs" role="button" title="Reply">
       <span class="glyphicon glyphicon-comment"></span> Reply
     </a>
-    <a href="#" class="btn btn-default btn-xs" role="button" title="Link"><span class="glyphicon glyphicon-share"></span> Link</a>
+    <a href="{% url 'comments:show_posts' post.thread.category post.thread.id %}#p{{ post.id }}" class="btn btn-default btn-xs" role="button" title="Link">
+      <span class="glyphicon glyphicon-share"></span> Link
+    </a>
   </div>
-  {% if perms.comments.change_post %}
+  {% if perms.comments.change_post or perms.comments.delete_post %}
   &nbsp;
   <div class="btn-group">
-    <a href="#" class="btn btn-default btn-xs" role="button" title="Approve"><span class="glyphicon glyphicon-ok"></span> Approve</a>
-    <a href="#" class="btn btn-default btn-xs" role="button" title="Spam"><span class="glyphicon glyphicon-ban-circle"></span> Spam</a>
-    <a href="#" class="btn btn-default btn-xs" role="button" title="Delete"><span class="glyphicon glyphicon-trash"></span> Delete</a>
+    {% if perms.comments.change_post %}
+    <a href="{% url 'comments:approve_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs {% if post.is_approved %}active{% endif %}" role="button" title="Approve">
+      <span class="glyphicon glyphicon-ok"></span> Approve
+    </a>
+    <a href="{% url 'comments:spam_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs {% if post.is_spam %}active{% endif %}" role="button" title="Spam">
+      <span class="glyphicon glyphicon-ban-circle"></span> Spam
+    </a>
+    {% endif %}
+    {% if perms.comments.delete_post %}
+    <a href="{% url 'comments:delete_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs {% if post.is_deleted %}active{% endif %}" role="button" title="Delete">
+      <span class="glyphicon glyphicon-trash"></span> Delete
+    </a>
+    {% endif %}
   </div>
   {% endif %}
 {% endif %}

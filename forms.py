@@ -15,3 +15,8 @@ class PostReplyForm(forms.ModelForm):
             'parent': forms.widgets.HiddenInput(),
             'thread': forms.widgets.HiddenInput(),
         }
+
+class PostEditForm(PostNewForm):
+    class Meta:
+        model = Post
+        fields = ('content',)

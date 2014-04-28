@@ -18,9 +18,7 @@
           <span class="glyphicon glyphicon-comment"></span> New {{ category }}
         </a>
       </p>
-      {% for thread in threads %}
-        {% include "includes/thread.html" %}
-      {% endfor %}
+      {% include "includes/threads.html" %}
     </div>
   </div>
   {% if threads.has_other_pages %}
