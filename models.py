@@ -40,7 +40,7 @@ class Thread(models.Model):
         ordering = ('-crdate', '-tstamp')
 
     def __unicode__(self):
-        return self.category
+        return self.get_category_display()
 
     def get_absolute_url(self):
         thread_kwargs = {'category': self.category, 'thread_id': self.id}
@@ -81,13 +81,19 @@ class Post(models.Model):
         ordering = ('-crdate', '-tstamp')
 
     def __unicode__(self):
-        return self.content
+        return u'%s by %s' % (self.thread, self.author)
 
     def get_absolute_url(self):
         thread_kwargs = {'category': self.thread.category, 'thread_id': self.thread.id}
         thread_link = reverse('comments:show_posts', kwargs=thread_kwargs)
         thread_link_post = '%s#p%d' % (thread_link, self.id)
         return thread_link_post
+
+    def get_cleaned_content(self):
+        return self.cleaned_content
+    get_cleaned_content.allow_tags = True
+    get_cleaned_content.admin_order_field = content_cleaned
+    get_cleaned_content.short_description = _('Comment')
 
     def clean_content(self, commit=True):
         cleaned_content = self.content
