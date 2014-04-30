@@ -75,10 +75,11 @@ def show_posts_latest(request, category, thread_id):
 def show_posts_etag(request, category, thread_id):
     try:
         thread = show_posts_latest(request, category, thread_id)
+        thread_latest_post = thread.posts.latest('tstamp')
         if request.user.is_authenticated():
-            return 'thread-%d:post-%d:user-%d' % (thread.id, thread.posts.latest('tstamp').id, request.user.id)
+            return 'thread-%d:post-%d:votes-%d:user-%d' % (thread.id, thread_latest_post.id, thread_latest_post.vote_sum, request.user.id)
         else:
-            return 'thread-%d:post-%d' % (thread.id, thread.posts.latest('tstamp').id)
+            return 'thread-%d:post-%d:votes-%d' % (thread.id, thread_latest_post.id, thread_latest_post.vote_sum)
     except Http404, e:
         return None
 
