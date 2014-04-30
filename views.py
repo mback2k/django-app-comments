@@ -25,10 +25,14 @@ def show_threads_etag(request, category):
         return None
     try:
         thread_list = show_threads_latest(request, category)
+        thread_list_posts = Post.objects.filter(thread__in=thread_list)
+        etag = '%d:%d:%d:%d' % (thread_list.count(),
+                                thread_list.latest('tstamp').id,
+                                thread_list_posts.count(),
+                                thread_list_posts.latest('tstamp').id)
         if request.user.is_authenticated():
-            return 'thread-%d:user-%d' % (thread_list.latest('tstamp').id, request.user.id)
-        else:
-            return 'thread-%d' % thread_list.latest('tstamp').id
+            etag += ':%d' % request.user.id
+        return etag
     except Thread.DoesNotExist, e:
         return None
 
@@ -83,13 +87,13 @@ def show_posts_etag(request, category, thread_id):
     try:
         thread = show_posts_latest(request, category, thread_id)
         thread_latest_post = thread.posts.latest('tstamp')
-        thread_latest_post_votes = thread_latest_post.vote_sum
-        if not thread_latest_post_votes:
-            thread_latest_post_votes = 0
+        etag = '%d:%d:%d:%d' % (thread.posts.count(),
+                                thread.id,
+                                thread_latest_post.id,
+                                thread_latest_post.vote_sum or 0)
         if request.user.is_authenticated():
-            return 'thread-%d:post-%d:votes-%d:user-%d' % (thread.id, thread_latest_post.id, thread_latest_post_votes, request.user.id)
-        else:
-            return 'thread-%d:post-%d:votes-%d' % (thread.id, thread_latest_post.id, thread_latest_post_votes)
+            etag += ':%d' % request.user.id
+        return etag
     except Http404, e:
         return None
 
