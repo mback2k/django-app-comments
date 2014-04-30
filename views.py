@@ -8,7 +8,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib import messages
 from .models import User, Author, Thread, Post, Vote
 from .forms import PostNewForm, PostReplyForm, PostEditForm
-from .tasks import notification_post_approval_pending, notification_post_approved, notification_post_new_reply
+from .tasks import notification_post_moderation_pending, notification_post_approved, notification_post_new_reply
 
 def show_threads(request, category):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
@@ -63,7 +63,7 @@ def new_post(request, category):
         post.save()
 
         if not post.is_approved:
-            notification_post_approval_pending.delay(post_id=post.id)
+            notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
 
         return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
 
@@ -92,7 +92,7 @@ def reply_post(request, category, thread_id, parent_id):
         post.save()
 
         if not post.is_approved:
-            notification_post_approval_pending.delay(post_id=post.id)
+            notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
         else:
             notification_post_new_reply.delay(post_id=post.id)
 
@@ -147,6 +147,20 @@ def vote_post(request, category, thread_id, post_id, mode):
     except Vote.DoesNotExist:
         vote = Vote(user=request.user, post=post, mode=modes[mode])
     vote.save()
+
+    vote_sum = post.vote_sum
+    if vote_sum:
+        was_flagged_post = post.is_flagged
+        was_highlighted_post = post.is_highlighted
+
+        post.is_flagged = vote_sum <= 3
+        post.is_highlighted = vote_sum >= 3
+        post.save(update_fields=('is_flagged', 'is_highlighted'))
+
+        if post.is_flagged and not was_flagged_post:
+            notification_post_moderation_pending.delay(post_id=post.id, mode='flagged')
+        if post.is_highlighted and not was_highlighted_post:
+            notification_post_moderation_pending.delay(post_id=post.id, mode='highlighted')
 
     return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
 
