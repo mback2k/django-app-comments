@@ -80,7 +80,7 @@ def show_posts_last_modified(request, category, thread_id):
     except Http404, e:
         return None
 
-@condition(etag_func=show_threads_etag, last_modified_func=show_threads_last_modified)
+@condition(etag_func=show_posts_etag, last_modified_func=show_posts_last_modified)
 def show_posts(request, category, thread_id):
     thread = show_posts_latest(request, category, thread_id)
 
