@@ -2,8 +2,8 @@
 <div class="panel panel-default{% if not post.is_approved %} panel-info{% endif %}{% if post.is_spam %} text-muted panel-warning{% endif %}{% if post.is_deleted %} text-muted panel-danger{% endif %}">
   <div class="panel-body">
     <div class="media">
-      <div class="pull-left">
-        <img class="media-object img-rounded" src="{{ post.author.avatar }}" alt="{{ post.author.username }}">
+      <div class="pull-left gravatar">
+        <img class="media-object img-responsive img-rounded" src="{{ post.author.avatar }}" alt="{{ post.author.username }}">
       </div>
       <div class="media-body" id="p{{ post.id }}">
         <p class="pull-right text-right"><small>

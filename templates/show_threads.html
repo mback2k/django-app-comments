@@ -1,4 +1,12 @@
 {% extends "base.html" %}
+{% load compress %}
+
+{% block css %}
+  {{ block.super }}
+  {% compress css %}
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/comments.css" />
+  {% endcompress %}
+{% endblock %}
 
 {% block navigation %}
   <li><a href="{% url 'software:show_home' %}" title="Home">Home</a></li>
