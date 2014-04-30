@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
+from django.views.decorators.http import condition
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
@@ -9,6 +10,21 @@ from .models import User, Author, Thread, Post, Vote
 from .forms import PostNewForm, PostReplyForm, PostEditForm
 from .tasks import notification_post_moderation_pending, notification_post_approved, notification_post_new_reply
 
+def show_threads_etag(request, category):
+    if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
+        thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
+    else:
+        thread_list = Thread.objects.filter(category=category)
+    return 'thread-%d' % thread_list.latest('tstamp').id
+
+def show_threads_last_modified(request, category):
+    if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
+        thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
+    else:
+        thread_list = Thread.objects.filter(category=category)
+    return thread_list.latest('tstamp').tstamp
+
+@condition(etag_func=show_threads_etag, last_modified_func=show_threads_last_modified)
 def show_threads(request, category):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
         thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
@@ -33,6 +49,21 @@ def show_threads(request, category):
 
     return render_to_response('show_threads.html', template_values, context_instance=RequestContext(request))
 
+def show_posts_etag(request, category, thread_id):
+    if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
+        thread = Thread.objects.get(category=category, id=thread_id)
+    else:
+        thread = Thread.objects.get(category=category, id=thread_id, is_deleted=False)
+    return 'thread-%d-post-%d' % (thread.id, thread.posts.latest('tstamp').id)
+
+def show_posts_last_modified(request, category, thread_id):
+    if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
+        thread = Thread.objects.get(category=category, id=thread_id)
+    else:
+        thread = Thread.objects.get(category=category, id=thread_id, is_deleted=False)
+    return thread.posts.latest('tstamp').tstamp
+
+@condition(etag_func=show_threads_etag, last_modified_func=show_threads_last_modified)
 def show_posts(request, category, thread_id):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
         thread = get_object_or_404(Thread, category=category, id=thread_id)
