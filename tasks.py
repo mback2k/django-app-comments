@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
-from celery.task import task
+from celery.schedules import crontab
+from celery.task import task, periodic_task
 from django.db.models import Q
 from django.contrib.auth.models import User, Permission
 from django.contrib.sites.models import Site
-from .models import User, Post
+from django.utils import timezone
+from .models import User, Post, Thread
+import datetime
 
 @task(ignore_result=True)
 def notification_post_moderation_pending(post_id, mode='approval'):
@@ -82,3 +85,15 @@ def clean_post_content(post_id):
         post.clean_content()
     except Post.DoesNotExist, e:
         raise clean_post_content.retry(exc=e)
+
+@periodic_task(run_every=crontab(minute=42))
+def purge_deleted_posts():
+    delete_age = timezone.now() - datetime.timedelta(days=1)
+
+    delete_posts = Post.objects.filter(is_deleted=True).filter(tstamp__lt=delete_age)
+    if delete_posts.exists():
+        delete_posts.delete()
+
+    delete_threads = Thread.objects.filter(posts=None).filter(is_deleted=True).filter(tstamp__lt=delete_age)
+    if delete_threads.exists():
+        delete_threads.delete()
