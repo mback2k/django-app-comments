@@ -152,7 +152,7 @@ def vote_post(request, category, thread_id, post_id, mode):
         was_flagged_post = post.is_flagged
         was_highlighted_post = post.is_highlighted
 
-        post.is_flagged = vote_sum <= 3
+        post.is_flagged = vote_sum <= -3
         post.is_highlighted = vote_sum >= 3
         post.save(update_fields=('is_flagged', 'is_highlighted'))
 
