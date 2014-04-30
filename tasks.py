@@ -75,7 +75,10 @@ def notification_post_new_reply_user(post_id, user_id):
                     'A new reply to your comment on %s has just been posted, you can view it at the following location:\n\n' \
                     '%s' % (current_site.name, absolute_url))
 
-@task(ignore_result=True)
+@task(ignore_result=True, default_retry_delay=10, max_retries=5)
 def clean_post_content(post_id):
-    post = Post.objects.get(id=post_id)
-    post.clean_content()
+    try:
+        post = Post.objects.get(id=post_id)
+        post.clean_content()
+    except Post.DoesNotExist, e:
+        raise clean_post_content.retry(exc=e)
