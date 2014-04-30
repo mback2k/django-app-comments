@@ -21,6 +21,8 @@ def show_threads_latest(request, category):
     return thread_list
 
 def show_threads_etag(request, category):
+    if len(messages.get_messages(request)):
+        return None
     try:
         thread_list = show_threads_latest(request, category)
         if request.user.is_authenticated():
@@ -31,6 +33,8 @@ def show_threads_etag(request, category):
         return None
 
 def show_threads_last_modified(request, category):
+    if len(messages.get_messages(request)):
+        return None
     try:
         thread_list = show_threads_latest(request, category)
         thread_list_posts = Post.objects.filter(thread__in=thread_list)
@@ -74,17 +78,24 @@ def show_posts_latest(request, category, thread_id):
     return thread
 
 def show_posts_etag(request, category, thread_id):
+    if len(messages.get_messages(request)):
+        return None
     try:
         thread = show_posts_latest(request, category, thread_id)
         thread_latest_post = thread.posts.latest('tstamp')
+        thread_latest_post_votes = thread_latest_post.vote_sum
+        if not thread_latest_post_votes:
+            thread_latest_post_votes = 0
         if request.user.is_authenticated():
-            return 'thread-%d:post-%d:votes-%d:user-%d' % (thread.id, thread_latest_post.id, thread_latest_post.vote_sum, request.user.id)
+            return 'thread-%d:post-%d:votes-%d:user-%d' % (thread.id, thread_latest_post.id, thread_latest_post_votes, request.user.id)
         else:
-            return 'thread-%d:post-%d:votes-%d' % (thread.id, thread_latest_post.id, thread_latest_post.vote_sum)
+            return 'thread-%d:post-%d:votes-%d' % (thread.id, thread_latest_post.id, thread_latest_post_votes)
     except Http404, e:
         return None
 
 def show_posts_last_modified(request, category, thread_id):
+    if len(messages.get_messages(request)):
+        return None
     try:
         thread = show_posts_latest(request, category, thread_id)
         last_modified = max(thread.posts.latest('tstamp').tstamp,
