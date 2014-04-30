@@ -63,7 +63,7 @@ def new_post(request, category):
         if not post.is_approved:
             notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
 
-        return HttpResponseRedirect(thread.get_absolute_url())
+        return HttpResponseRedirect(post.thread.get_absolute_url())
 
     template_values = {
         'category': category,
