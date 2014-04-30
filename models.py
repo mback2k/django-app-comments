@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.core.cache import cache
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone, html
@@ -74,6 +75,12 @@ class Post(models.Model):
 
     def __unicode__(self):
         return self.content
+
+    def get_absolute_url(self):
+        thread_kwargs = {'category': self.thread.category, 'thread_id': self.thread.id}
+        thread_link = reverse('comments:show_posts', kwargs=thread_kwargs)
+        thread_link_abs = '%s#p%d' % (thread_link, self.id)
+        return thread_link_abs
 
     def clean_content(self, commit=True):
         cleaned_content = self.content

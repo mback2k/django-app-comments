@@ -8,6 +8,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib import messages
 from .models import User, Author, Thread, Post, Vote
 from .forms import PostNewForm, PostReplyForm, PostEditForm
+from .tasks import notification_post_approval_pending, notification_post_approved, notification_post_new_reply
 
 def show_threads(request, category):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
@@ -60,6 +61,10 @@ def new_post(request, category):
         post.is_approved = post.author.posts.filter(is_approved=True).exists()
         post.clean_content(commit=False)
         post.save()
+
+        if not post.is_approved:
+            notification_post_approval_pending.delay(post_id=post.id)
+
         return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
 
     template_values = {
@@ -85,6 +90,12 @@ def reply_post(request, category, thread_id, parent_id):
         post.is_approved = post.author.posts.filter(is_approved=True).exists()
         post.clean_content(commit=False)
         post.save()
+
+        if not post.is_approved:
+            notification_post_approval_pending.delay(post_id=post.id)
+        else:
+            notification_post_new_reply.delay(post_id=post.id)
+
         return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
 
     template_values = {
@@ -146,6 +157,10 @@ def approve_post(request, category, thread_id, post_id):
 
     post.is_approved = not(post.is_approved)
     post.save()
+
+    if post.is_approved:
+        notification_post_approved.delay(post_id=post.id)
+        notification_post_new_reply.delay(post_id=post.id)
 
     return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
 
