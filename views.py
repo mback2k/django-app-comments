@@ -58,7 +58,6 @@ def new_post(request, category):
         post.thread = Thread.objects.create(category=category)
         post.author = Author.objects.get(pk=request.user.pk)
         post.is_approved = post.author.posts.filter(is_approved=True).exists()
-        post.clean_content(commit=False)
         post.save()
 
         if not post.is_approved:
@@ -87,7 +86,6 @@ def reply_post(request, category, thread_id, parent_id):
         post = post_form.save(commit=False)
         post.author = Author.objects.get(pk=request.user.pk)
         post.is_approved = post.author.posts.filter(is_approved=True).exists()
-        post.clean_content(commit=False)
         post.save()
 
         if not post.is_approved:
@@ -121,9 +119,8 @@ def edit_post(request, category, thread_id, post_id):
         post_form = PostEditForm(instance=post)
 
     if post_form.is_valid():
-        post = post_form.save(commit=False)
-        post.clean_content(commit=False)
-        post.save()
+        post = post_form.save()
+
         return HttpResponseRedirect(post.get_absolute_url())
 
     template_values = {

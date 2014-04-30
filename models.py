@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.db import models
+from django.db.models import signals
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone, html
+from django.dispatch import receiver
 from lxml.html import clean
 import urllib, hashlib, datetime
 
@@ -138,3 +140,8 @@ class Vote(models.Model):
 
     class Meta:
         unique_together = ('post', 'user')
+
+@receiver(signals.pre_save, sender=Post)
+def handle_post_pre_save_signal(sender, instance, **kwargs):
+    post = instance
+    post.clean_content(commit=False)
