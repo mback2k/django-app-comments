@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone, html
+from django.utils import timezone, html, safestring
 from django.dispatch import receiver
 from lxml.html import clean
 import urllib, hashlib, datetime
@@ -113,7 +113,8 @@ class Post(models.Model):
     @property
     def cleaned_content(self):
         if not self.content_cleaned:
-            return _('This post is still being processed, please give it a few seconds and reload this page.')
+            content = _('This post is still being processed, please give it a few seconds and reload this page.')
+            return safestring.mark_safe(u'<p>%s</p>' % content)
         return self.content_cleaned
 
     @property
