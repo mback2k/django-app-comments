@@ -32,7 +32,9 @@ def show_threads_etag(request, category):
 def show_threads_last_modified(request, category):
     try:
         thread_list = show_threads_latest(request, category)
+        thread_list_posts = Post.objects.filter(thread__in=thread_list)
         last_modified = max(thread_list.latest('tstamp').tstamp,
+                            thread_list_posts.latest('tstamp').tstamp,
                             datetime.datetime.fromtimestamp(os.path.getmtime(__file__),
                                                             timezone.get_current_timezone()))
         if request.user.is_authenticated():
