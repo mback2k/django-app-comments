@@ -40,6 +40,11 @@ class Thread(models.Model):
     def __unicode__(self):
         return self.category
 
+    def get_absolute_url(self):
+        thread_kwargs = {'category': self.category, 'thread_id': self.id}
+        thread_link = reverse('comments:show_posts', kwargs=thread_kwargs)
+        return thread_link
+
     @property
     def first_post(self):
         return self.posts.filter(parent=None).last()
@@ -79,8 +84,8 @@ class Post(models.Model):
     def get_absolute_url(self):
         thread_kwargs = {'category': self.thread.category, 'thread_id': self.thread.id}
         thread_link = reverse('comments:show_posts', kwargs=thread_kwargs)
-        thread_link_abs = '%s#p%d' % (thread_link, self.id)
-        return thread_link_abs
+        thread_link_post = '%s#p%d' % (thread_link, self.id)
+        return thread_link_post
 
     def clean_content(self, commit=True):
         cleaned_content = self.content

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
+from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib import messages
@@ -65,7 +64,7 @@ def new_post(request, category):
         if not post.is_approved:
             notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
 
-        return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
+        return HttpResponseRedirect(thread.get_absolute_url())
 
     template_values = {
         'category': category,
@@ -96,7 +95,7 @@ def reply_post(request, category, thread_id, parent_id):
         else:
             notification_post_new_reply.delay(post_id=post.id)
 
-        return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
+        return HttpResponseRedirect(post.get_absolute_url())
 
     template_values = {
         'category': category,
@@ -114,7 +113,7 @@ def edit_post(request, category, thread_id, post_id):
     post = get_object_or_404(Post, thread=thread, author=author, id=post_id)
 
     if not post.is_editable:
-        return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
+        return HttpResponseRedirect(thread.get_absolute_url())
 
     if request.method == 'POST':
         post_form = PostEditForm(instance=post, data=request.POST)
@@ -125,7 +124,7 @@ def edit_post(request, category, thread_id, post_id):
         post = post_form.save(commit=False)
         post.clean_content(commit=False)
         post.save()
-        return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
+        return HttpResponseRedirect(post.get_absolute_url())
 
     template_values = {
         'category': category,
@@ -162,7 +161,7 @@ def vote_post(request, category, thread_id, post_id, mode):
         if post.is_highlighted and not was_highlighted_post:
             notification_post_moderation_pending.delay(post_id=post.id, mode='highlighted')
 
-    return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
+    return HttpResponseRedirect(post.get_absolute_url())
 
 @permission_required('comments.change_post')
 def approve_post(request, category, thread_id, post_id):
@@ -176,7 +175,7 @@ def approve_post(request, category, thread_id, post_id):
         notification_post_approved.delay(post_id=post.id)
         notification_post_new_reply.delay(post_id=post.id)
 
-    return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
+    return HttpResponseRedirect(post.get_absolute_url())
 
 @permission_required('comments.change_post')
 def spam_post(request, category, thread_id, post_id):
@@ -186,7 +185,7 @@ def spam_post(request, category, thread_id, post_id):
     post.is_spam = not(post.is_spam)
     post.save()
 
-    return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
+    return HttpResponseRedirect(post.get_absolute_url())
 
 @permission_required('comments.delete_post')
 def delete_post(request, category, thread_id, post_id):
@@ -196,4 +195,4 @@ def delete_post(request, category, thread_id, post_id):
     post.is_deleted = not(post.is_deleted)
     post.save()
 
-    return HttpResponseRedirect(reverse('comments:show_posts', kwargs={'category': category, 'thread_id': post.thread.id}))
+    return HttpResponseRedirect(post.get_absolute_url())
