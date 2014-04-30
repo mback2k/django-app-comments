@@ -2,7 +2,7 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
 from django.views.decorators.http import condition
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib import messages
@@ -10,26 +10,30 @@ from .models import User, Author, Thread, Post, Vote
 from .forms import PostNewForm, PostReplyForm, PostEditForm
 from .tasks import notification_post_moderation_pending, notification_post_approved, notification_post_new_reply
 
-def show_threads_etag(request, category):
+def show_threads_latest(request, category):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
         thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
     else:
         thread_list = Thread.objects.filter(category=category)
-    return 'thread-%d' % thread_list.latest('tstamp').id
+    return thread_list
+
+def show_threads_etag(request, category):
+    try:
+        thread_list = show_threads_latest(request, category)
+        return 'thread-%d' % thread_list.latest('tstamp').id
+    except Thread.DoesNotExist, e:
+        return None
 
 def show_threads_last_modified(request, category):
-    if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
-        thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
-    else:
-        thread_list = Thread.objects.filter(category=category)
-    return thread_list.latest('tstamp').tstamp
+    try:
+        thread_list = show_threads_latest(request, category)
+        return thread_list.latest('tstamp').tstamp
+    except Thread.DoesNotExist, e:
+        return None
 
 @condition(etag_func=show_threads_etag, last_modified_func=show_threads_last_modified)
 def show_threads(request, category):
-    if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
-        thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
-    else:
-        thread_list = Thread.objects.filter(category=category)
+    thread_list = show_threads_latest(request, category)
 
     paginator = Paginator(thread_list, 10)
     page = request.GET.get('page')
@@ -49,26 +53,30 @@ def show_threads(request, category):
 
     return render_to_response('show_threads.html', template_values, context_instance=RequestContext(request))
 
-def show_posts_etag(request, category, thread_id):
-    if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
-        thread = Thread.objects.get(category=category, id=thread_id)
-    else:
-        thread = Thread.objects.get(category=category, id=thread_id, is_deleted=False)
-    return 'thread-%d-post-%d' % (thread.id, thread.posts.latest('tstamp').id)
-
-def show_posts_last_modified(request, category, thread_id):
-    if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
-        thread = Thread.objects.get(category=category, id=thread_id)
-    else:
-        thread = Thread.objects.get(category=category, id=thread_id, is_deleted=False)
-    return thread.posts.latest('tstamp').tstamp
-
-@condition(etag_func=show_threads_etag, last_modified_func=show_threads_last_modified)
-def show_posts(request, category, thread_id):
+def show_posts_latest(request, category, thread_id):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
         thread = get_object_or_404(Thread, category=category, id=thread_id)
     else:
         thread = get_object_or_404(Thread, category=category, id=thread_id, is_deleted=False)
+    return thread
+
+def show_posts_etag(request, category, thread_id):
+    try:
+        thread = show_posts_latest(request, category, thread_id)
+        return 'thread-%d-post-%d' % (thread.id, thread.posts.latest('tstamp').id)
+    except Http404, e:
+        return None
+
+def show_posts_last_modified(request, category, thread_id):
+    try:
+        thread = show_posts_latest(request, category, thread_id)
+        return thread.posts.latest('tstamp').tstamp
+    except Http404, e:
+        return None
+
+@condition(etag_func=show_threads_etag, last_modified_func=show_threads_last_modified)
+def show_posts(request, category, thread_id):
+    thread = show_posts_latest(request, category, thread_id)
 
     template_values = {
         'category': category,
@@ -76,6 +84,7 @@ def show_posts(request, category, thread_id):
     }
 
     return render_to_response('show_posts.html', template_values, context_instance=RequestContext(request))
+
 
 @login_required
 def new_post(request, category):
@@ -161,6 +170,7 @@ def edit_post(request, category, thread_id, post_id):
 
     return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))
 
+
 @login_required
 def vote_post(request, category, thread_id, post_id, mode):
     thread = get_object_or_404(Thread, category=category, id=thread_id)
@@ -190,6 +200,7 @@ def vote_post(request, category, thread_id, post_id, mode):
             notification_post_moderation_pending.delay(post_id=post.id, mode='highlighted')
 
     return HttpResponseRedirect(post.get_absolute_url())
+
 
 @permission_required('comments.change_post')
 def approve_post(request, category, thread_id, post_id):
