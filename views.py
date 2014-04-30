@@ -286,6 +286,9 @@ def delete_post(request, category, thread_id, post_id):
     post.is_deleted = not(post.is_deleted)
     post.save(update_fields=('is_deleted',))
 
+    thread.is_deleted = not(thread.posts.exclude(is_deleted=True).exists())
+    thread.save(update_fields=('is_deleted',))
+
     if post.is_deleted:
         messages.error(request, _('<strong>Careful</strong>, the post has successfully been marked as deleted.'))
     else:
