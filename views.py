@@ -22,16 +22,22 @@ def show_threads_latest(request, category):
 def show_threads_etag(request, category):
     try:
         thread_list = show_threads_latest(request, category)
-        return 'thread-%d' % thread_list.latest('tstamp').id
+        if request.user.is_authenticated():
+            return 'thread-%d:user-%d' % (thread_list.latest('tstamp').id, request.user.id)
+        else:
+            return 'thread-%d' % thread_list.latest('tstamp').id
     except Thread.DoesNotExist, e:
         return None
 
 def show_threads_last_modified(request, category):
     try:
         thread_list = show_threads_latest(request, category)
-        return max(thread_list.latest('tstamp').tstamp,
-                   datetime.datetime.fromtimestamp(os.path.getmtime(__file__),
-                                                   timezone.get_current_timezone()))
+        last_modified = max(thread_list.latest('tstamp').tstamp,
+                            datetime.datetime.fromtimestamp(os.path.getmtime(__file__),
+                                                            timezone.get_current_timezone()))
+        if request.user.is_authenticated():
+            last_modified = max(last_modified, request.user.last_login)
+        return last_modified
     except Thread.DoesNotExist, e:
         return None
 
@@ -67,16 +73,22 @@ def show_posts_latest(request, category, thread_id):
 def show_posts_etag(request, category, thread_id):
     try:
         thread = show_posts_latest(request, category, thread_id)
-        return 'thread-%d-post-%d' % (thread.id, thread.posts.latest('tstamp').id)
+        if request.user.is_authenticated():
+            return 'thread-%d:post-%d:user-%d' % (thread.id, thread.posts.latest('tstamp').id, request.user.id)
+        else:
+            return 'thread-%d:post-%d' % (thread.id, thread.posts.latest('tstamp').id)
     except Http404, e:
         return None
 
 def show_posts_last_modified(request, category, thread_id):
     try:
         thread = show_posts_latest(request, category, thread_id)
-        return max(thread.posts.latest('tstamp').tstamp,
-                   datetime.datetime.fromtimestamp(os.path.getmtime(__file__),
-                                                   timezone.get_current_timezone()))
+        last_modified = max(thread.posts.latest('tstamp').tstamp,
+                            datetime.datetime.fromtimestamp(os.path.getmtime(__file__),
+                                                            timezone.get_current_timezone()))
+        if request.user.is_authenticated():
+            last_modified = max(last_modified, request.user.last_login)
+        return last_modified
     except Http404, e:
         return None
 
