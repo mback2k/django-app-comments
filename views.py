@@ -256,7 +256,7 @@ def approve_post(request, category, thread_id, post_id):
     post = get_object_or_404(Post, thread=thread, id=post_id)
 
     post.is_approved = not(post.is_approved)
-    post.save(update_fields=('is_approved',))
+    post.save(update_fields=('is_approved', 'tstamp'))
 
     if post.is_approved:
         notification_post_approved.delay(post_id=post.id)
@@ -273,7 +273,7 @@ def spam_post(request, category, thread_id, post_id):
     post = get_object_or_404(Post, thread=thread, id=post_id)
 
     post.is_spam = not(post.is_spam)
-    post.save(update_fields=('is_spam',))
+    post.save(update_fields=('is_spam', 'tstamp'))
 
     if post.is_spam:
         messages.warning(request, _('<strong>Careful</strong>, the post has successfully been marked as spam.'))
@@ -288,10 +288,10 @@ def delete_post(request, category, thread_id, post_id):
     post = get_object_or_404(Post, thread=thread, id=post_id)
 
     post.is_deleted = not(post.is_deleted)
-    post.save(update_fields=('is_deleted',))
+    post.save(update_fields=('is_deleted', 'tstamp'))
 
     thread.is_deleted = not(thread.posts.exclude(is_deleted=True).exists())
-    thread.save(update_fields=('is_deleted',))
+    thread.save(update_fields=('is_deleted', 'tstamp'))
 
     if post.is_deleted:
         messages.error(request, _('<strong>Careful</strong>, the post has successfully been marked as deleted.'))
