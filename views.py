@@ -6,9 +6,11 @@ from django.http import HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib import messages
+from django.utils import timezone
 from .models import User, Author, Thread, Post, Vote
 from .forms import PostNewForm, PostReplyForm, PostEditForm
 from .tasks import notification_post_moderation_pending, notification_post_approved, notification_post_new_reply
+import os.path, datetime
 
 def show_threads_latest(request, category):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
@@ -27,7 +29,9 @@ def show_threads_etag(request, category):
 def show_threads_last_modified(request, category):
     try:
         thread_list = show_threads_latest(request, category)
-        return thread_list.latest('tstamp').tstamp
+        return max(thread_list.latest('tstamp').tstamp,
+                   datetime.datetime.fromtimestamp(os.path.getmtime(__file__),
+                                                   timezone.get_current_timezone()))
     except Thread.DoesNotExist, e:
         return None
 
@@ -70,7 +74,9 @@ def show_posts_etag(request, category, thread_id):
 def show_posts_last_modified(request, category, thread_id):
     try:
         thread = show_posts_latest(request, category, thread_id)
-        return thread.posts.latest('tstamp').tstamp
+        return max(thread.posts.latest('tstamp').tstamp,
+                   datetime.datetime.fromtimestamp(os.path.getmtime(__file__),
+                                                   timezone.get_current_timezone()))
     except Http404, e:
         return None
 
