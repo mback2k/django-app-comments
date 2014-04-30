@@ -74,3 +74,8 @@ def notification_post_new_reply_user(post_id, user_id):
     user.email_user('%s - New reply to your post' % current_site.name,
                     'A new reply to your comment on %s has just been posted, you can view it at the following location:\n\n' \
                     '%s' % (current_site.name, absolute_url))
+
+@task(ignore_result=True)
+def clean_post_content(post_id):
+    post = Post.objects.get(id=post_id)
+    post.clean_content()

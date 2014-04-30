@@ -100,14 +100,14 @@ class Post(models.Model):
         cleaned_content = clean.autolink_html(cleaned_content)
         cleaned_content = self.cleaner.clean_html(cleaned_content)
         self.content_cleaned = cleaned_content
-        if commit and self.pk:
+        if commit and self.id:
             self.save(update_fields=('content_cleaned',))
         return self.content_cleaned
 
     @property
     def cleaned_content(self):
         if not self.content_cleaned:
-            self.clean_content()
+            return _('This post is still being processed, please give it a few seconds and reload this page.')
         return self.content_cleaned
 
     @property
@@ -142,6 +142,12 @@ class Vote(models.Model):
         unique_together = ('post', 'user')
 
 @receiver(signals.pre_save, sender=Post)
-def handle_post_pre_save_signal(sender, instance, **kwargs):
-    post = instance
-    post.clean_content(commit=False)
+def handle_post_pre_save_signal(sender, instance, update_fields, **kwargs):
+    if not update_fields or 'content' in update_fields:
+        instance.content_cleaned = None
+
+@receiver(signals.post_save, sender=Post)
+def handle_post_post_save_signal(sender, instance, update_fields, **kwargs):
+    from .tasks import clean_post_content
+    if not instance.content_cleaned:
+        clean_post_content.delay(post_id=instance.id)
