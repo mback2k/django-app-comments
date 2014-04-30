@@ -1,5 +1,5 @@
 {% load jdatetime %}
-<div class="media {% if not post.is_approved %} bg-info{% endif %}{% if post.is_spam %} text-muted bg-warning{% endif %}{% if post.is_deleted %} text-muted bg-danger{% endif %}" id="p{{ post.id }}">
+<div class="media{% if not post.is_approved %} bg-info{% elif post.is_spam %} text-muted bg-warning{% elif post.is_deleted %} text-muted bg-danger{% endif %}" id="p{{ post.id }}">
   <div class="pull-left gravatar">
     <img class="media-object img-responsive img-rounded" src="{{ post.author.avatar }}" alt="{{ post.author.username }}">
   </div>

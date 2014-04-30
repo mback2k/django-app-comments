@@ -1,5 +1,5 @@
 {% load jdatetime %}
-<div class="panel panel-default{% if not post.is_approved %} panel-info{% endif %}{% if post.is_spam %} text-muted panel-warning{% endif %}{% if post.is_deleted %} text-muted panel-danger{% endif %}">
+<div class="panel panel-default{% if not post.is_approved %} panel-info{% elif post.is_spam %} text-muted panel-warning{% elif post.is_deleted %} text-muted panel-danger{% endif %}">
   <div class="panel-body">
     <div class="media">
       <div class="pull-left gravatar">
