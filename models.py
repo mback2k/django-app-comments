@@ -16,9 +16,15 @@ class Author(User):
 
     @property
     def avatar(self):
-        hash = hashlib.md5(self.email.lower()).hexdigest()
+        if self.email:
+            hash = hashlib.md5(self.email.lower()).hexdigest()
+        else:
+            hash = hashlib.md5(self.username).hexdigest()
         gravatar_url = "//www.gravatar.com/avatar/%s.jpg?" % hash
-        gravatar_url += urllib.urlencode({'d': 'retro', 's': 64})
+        if self.email:
+            gravatar_url += urllib.urlencode({'d': 'retro', 's': 64})
+        else:
+            gravatar_url += urllib.urlencode({'d': 'retro', 's': 64, 'f': 'y'})
         return gravatar_url
 
 class Thread(models.Model):
