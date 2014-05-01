@@ -4,3 +4,7 @@
     width: 10%;
     height: auto;
 }
+.post-media {
+    max-width: 128px;
+    max-height: 128px;
+}

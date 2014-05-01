@@ -12,6 +12,11 @@
     </small></p>
     <h4 class="media-heading">{% firstof post.author.first_name post.author.username %} wrote:</h4>
     {{ post.cleaned_content|safe }}
+    {% for media in post.media.all %}
+    <a href="{{ media.image.url }}" class="thumbnail">
+      <img class="media-object post-media" src="{{ media.image.url }}"{% if media.width <= 128 %} width="{{ media.width }}px"{% endif %} height="{% if media.height <= 128 %}{{ media.height }}{% else %}128{% endif %}px" />
+    </a>
+    {% endfor %}
     <p class="pull-left text-muted">
       {% if post.votes.exists %}<small>
         <span class="glyphicon glyphicon-star"></span> {{ post.vote_sum }}
