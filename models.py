@@ -148,6 +148,14 @@ class Vote(models.Model):
     class Meta:
         unique_together = ('post', 'user')
 
+class Media(models.Model):
+    post = models.ForeignKey(Post, related_name='media')
+    image = models.ImageField(_('Image'), upload_to='comments/posts/%Y/%m/%d',
+                                          width_field='width', height_field='height',
+                                          max_length=250)
+    width = models.SmallIntegerField(_('Width'))
+    height = models.SmallIntegerField(_('Height'))
+
 @receiver(signals.pre_save, sender=Post)
 def handle_post_pre_save_signal(sender, instance, update_fields, **kwargs):
     if not update_fields or 'content' in update_fields:

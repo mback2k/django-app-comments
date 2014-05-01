@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
-from .models import Thread, Post, Vote
+from .models import Thread, Post, Vote, Media
 
 class ThreadAdmin(admin.ModelAdmin):
     list_display = ('category', 'crdate', 'tstamp', 'is_closed', 'is_deleted')
@@ -23,6 +23,11 @@ class VoteAdmin(admin.ModelAdmin):
     list_display = ('post', 'user', 'mode')
     list_filter = ('mode',)
 
+class MediaAdmin(admin.ModelAdmin):
+    raw_id_fields = ('post',)
+    list_display = ('post', 'image', 'width', 'height')
+
 admin.site.register(Thread, ThreadAdmin)
 admin.site.register(Post, PostAdmin)
 admin.site.register(Vote, VoteAdmin)
+admin.site.register(Media, MediaAdmin)

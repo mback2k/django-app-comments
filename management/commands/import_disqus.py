@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.db import transaction
 from django.utils import timezone, text
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
 from social.apps.django_app.default.models import UserSocialAuth
-from ...models import User, Author, Thread, Post, Vote
+from ...models import User, Author, Thread, Post, Vote, Media
 from disqusapi import DisqusAPI
-import isodate
+import os.path, isodate, urllib2
 
 class Command(BaseCommand):
     args = '<disqus-forum> <secret-key> <public-key>'
@@ -86,6 +87,10 @@ class Command(BaseCommand):
                 if disqus_post_dislikes > 0:
                     self.handle_votes(disqus_api, disqus_post_thread, post, -1, disqus_post_dislikes)
 
+                disqus_post_media = disqus_post.get('media', [])
+                if disqus_post_media:
+                    self.handle_media(disqus_post_media, post)
+
                 self.handle_post(disqus_api, disqus_posts_list, post_id, post, depth+1)
 
     def handle_author(self, post_id, disqus_author):
@@ -133,6 +138,24 @@ class Command(BaseCommand):
                 if User.objects.filter(id=user_id).exists():
                     user = User.objects.get(id=user_id)
                     Vote.objects.create(post=post, user=user, mode=vote)
+
+    def handle_media(self, disqus_post_media, post):
+        for disqus_media in disqus_post_media:
+            disqus_media_location = disqus_media.get('location', None)
+            if disqus_media_location:
+                disqus_media_filename = os.path.basename(disqus_media_location)
+                if disqus_media_location.startswith('//'):
+                    disqus_media_location = 'https:%s' % disqus_media_location
+                try:
+                    media_url = urllib2.urlopen(disqus_media_location)
+                except urllib2.HTTPError, e:
+                    continue
+                if media_url:
+                    media_data = media_url.read()
+                    media_file = ContentFile(media_data)
+                    media = Media(post=post)
+                    media.image.save(name=disqus_media_filename, content=media_file)
+                    media.save()
 
     def parse_datetime(self, datetime):
         return timezone.make_aware(isodate.parse_datetime(datetime), timezone.utc)
