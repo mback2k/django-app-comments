@@ -36,11 +36,11 @@ class Command(BaseCommand):
                 break
 
         with transaction.atomic():
-            self.handle_post(disqus_posts_list)
+            self.handle_post(disqus_api, disqus_posts_list)
 
         self.stdout.write('Successfully imported Disqus comments and authors from JSON API')
 
-    def handle_post(self, disqus_posts_list, parent_id=None, parent=None, depth=0):
+    def handle_post(self, disqus_api, disqus_posts_list, parent_id=None, parent=None, depth=0):
         for disqus_post in disqus_posts_list:
             post_parent_id = disqus_post.get('parent', None)
             if post_parent_id:
@@ -77,7 +77,16 @@ class Command(BaseCommand):
                 post.crdate = self.parse_datetime(post_created)
                 post.save(update_fields=('crdate',))
 
-                self.handle_post(disqus_posts_list, post_id, post, depth+1)
+                disqus_post_thread = int(disqus_post.get('thread'))
+                disqus_post_likes = int(disqus_post.get('likes', 0))
+                disqus_post_dislikes = int(disqus_post.get('dislikes', 0))
+
+                if disqus_post_likes > 0:
+                    self.handle_votes(disqus_api, disqus_post_thread, post,  1, disqus_post_likes)
+                if disqus_post_dislikes > 0:
+                    self.handle_votes(disqus_api, disqus_post_thread, post, -1, disqus_post_dislikes)
+
+                self.handle_post(disqus_api, disqus_posts_list, post_id, post, depth+1)
 
     def handle_author(self, post_id, disqus_author):
         author_name         = disqus_author.get('name'       )
@@ -114,6 +123,16 @@ class Command(BaseCommand):
 
         print author.username
         return author
+
+    def handle_votes(self, disqus_api, disqus_post_thread, post, vote, votes):
+        users = disqus_api.posts.listUsersVotedPost(method='GET', thread=disqus_post_thread, post=post.id, vote=vote, limit=votes)
+
+        for user in users:
+            user_id = int(user.get('id', 0))
+            if user_id:
+                if User.objects.filter(id=user_id).exists():
+                    user = User.objects.get(id=user_id)
+                    Vote.objects.create(post=post, user=user, mode=vote)
 
     def parse_datetime(self, datetime):
         return timezone.make_aware(isodate.parse_datetime(datetime), timezone.utc)
