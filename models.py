@@ -27,7 +27,7 @@ class Author(User):
         if self.email:
             hash = hashlib.md5(self.email.lower()).hexdigest()
         else:
-            hash = hashlib.md5(self.username).hexdigest()
+            hash = hashlib.md5(self.name.encode('utf-8')).hexdigest()
         gravatar_url = "//www.gravatar.com/avatar/%s.jpg?" % hash
         if self.email:
             gravatar_url += urllib.urlencode({'d': 'retro', 's': 64})
