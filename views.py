@@ -15,9 +15,9 @@ import os.path, datetime
 
 def show_threads_latest(request, category):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
-        thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
-    else:
         thread_list = Thread.objects.filter(category=category)
+    else:
+        thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
     return thread_list
 
 def show_threads_etag(request, category):

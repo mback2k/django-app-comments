@@ -55,11 +55,11 @@ class Thread(models.Model):
 
     @property
     def first_post(self):
-        return self.posts.filter(parent=None).last()
+        return self.posts.filter(parent=None).get()
 
     @property
     def first_active_post(self):
-        return self.posts.filter(parent=None).exclude(is_deleted=True).exclude(is_spam=True).filter(is_approved=True).last()
+        return self.posts.filter(parent=None).exclude(is_deleted=True).exclude(is_spam=True).filter(is_approved=True).get()
 
 class Post(models.Model):
     parent = models.ForeignKey('self', related_name='posts', blank=True, null=True)
