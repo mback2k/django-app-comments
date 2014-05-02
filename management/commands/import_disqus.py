@@ -111,7 +111,6 @@ class Command(BaseCommand):
 
         try:
             author = Author.objects.get(id=int(author_id),
-                                        username=author_username,
                                         is_active=True)
 
         except Author.DoesNotExist:
