@@ -86,7 +86,7 @@ def clean_post_content(post_id):
     except Post.DoesNotExist, e:
         raise clean_post_content.retry(exc=e)
 
-@periodic_task(run_every=crontab(minute=42))
+#@periodic_task(run_every=crontab(minute=42))
 def purge_deleted_posts():
     delete_age = timezone.now() - datetime.timedelta(days=1)
 
