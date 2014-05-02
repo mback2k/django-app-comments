@@ -15,6 +15,14 @@ class Author(User):
         proxy = True
 
     @property
+    def name(self):
+        if self.first_name:
+            return self.first_name
+        if self.email:
+            return self.email.split('@', 2)[0]
+        return self.username
+
+    @property
     def avatar(self):
         if self.email:
             hash = hashlib.md5(self.email.lower()).hexdigest()

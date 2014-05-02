@@ -12,7 +12,7 @@
           Edited on {{ post.edited|localedatetime }}
           {% endif %}
         </small></p>
-        <h4 class="media-heading">{% firstof post.author.first_name post.author.username %} wrote:</h4>
+        <h4 class="media-heading">{{ post.author.name }} wrote:</h4>
         {{ post.cleaned_content|safe }}
       </div>
     </div>
