@@ -25,15 +25,15 @@
   &nbsp;
   <div class="btn-group">
     {% if perms.comments.change_post %}
-    <a href="{% url 'comments:approve_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs {% if post.is_approved %}active{% endif %}" role="button" title="Approve">
+    <a href="{% url 'comments:approve_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs{% if post.is_approved %} active{% endif %}" role="button" title="Approve">
       <span class="glyphicon glyphicon-ok"></span> Approve
     </a>
-    <a href="{% url 'comments:spam_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs {% if post.is_spam %}active{% endif %}" role="button" title="Spam">
+    <a href="{% url 'comments:spam_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs{% if post.is_spam %} active{% endif %}" role="button" title="Spam">
       <span class="glyphicon glyphicon-ban-circle"></span> Spam
     </a>
     {% endif %}
     {% if perms.comments.delete_post %}
-    <a href="{% url 'comments:delete_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs {% if post.is_deleted %}active{% endif %}" role="button" title="Delete">
+    <a href="{% url 'comments:delete_post' post.thread.category post.thread.id post.id %}" class="btn btn-default btn-xs{% if post.is_deleted %} active{% endif %}" role="button" title="Delete">
       <span class="glyphicon glyphicon-trash"></span> Delete
     </a>
     {% endif %}
