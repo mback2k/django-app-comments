@@ -2,7 +2,7 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
 from django.views.decorators.http import condition
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
@@ -113,7 +113,14 @@ def show_posts_last_modified(request, category, thread_id):
 
 @condition(etag_func=show_posts_etag, last_modified_func=show_posts_last_modified)
 def show_posts(request, category, thread_id):
-    thread = show_posts_latest(request, category, thread_id)
+    try:
+        thread = show_posts_latest(request, category, thread_id)
+    except Http404, e:
+        try:
+            thread = Thread.objects.exclude(category=category).get(id=thread_id)
+            return HttpResponsePermanentRedirect(thread.get_absolute_url())
+        except Thread.DoesNotExist, e2:
+            raise e
 
     template_values = {
         'category': category,
