@@ -2,6 +2,8 @@
 {% load compress %}
 {% load jdatetime %}
 
+{% block title %}{{ block.super }} - {{ category|capfirst }} - {{ thread.crdate|date }}{% endblock %}
+
 {% block css %}
   {{ block.super }}
   {% compress css %}
