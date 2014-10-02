@@ -100,6 +100,8 @@ class Command(BaseCommand):
         author_is_anonymous = disqus_author.get('isAnonymous', True)
         author_joined       = disqus_author.get('joinedAt'   , None)
 
+        assert bool(author_is_anonymous) ^ bool(author_id)
+
         if author_is_anonymous:
             author_username = u'anonymous-%d' % post_id
             author = Author.objects.create_user(username=author_username,
@@ -112,6 +114,7 @@ class Command(BaseCommand):
         try:
             author = Author.objects.get(id=int(author_id),
                                         is_active=True)
+            print 'MATCH:', author_id, author
 
         except Author.DoesNotExist:
             author = Author.objects.create_user(id=int(author_id),
