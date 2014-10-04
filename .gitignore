@@ -1,0 +1,10 @@
+*~
+*.orig
+*.pyc
+*.pyo
+*.tmp
+_static
+_media
+celerybeat-schedule
+devdatabase.sqlite
+desktop.ini
