@@ -92,7 +92,7 @@ class Post(models.Model):
                             page_structure=True, safe_attrs_only=True, add_nofollow=True)
 
     class Meta:
-        ordering = ('-crdate', '-tstamp')
+        ordering = ('crdate', 'tstamp')
 
     def __unicode__(self):
         return u'%s by %s' % (self.thread, self.author)
