@@ -116,7 +116,6 @@ class Post(models.Model):
         cleaned_content = cleaned_content.replace('<br>', '\n')
         cleaned_content = cleaned_content.replace('<br />', '\n')
         cleaned_content = html.linebreaks(cleaned_content)
-        cleaned_content = html.clean_html(cleaned_content)
         cleaned_content = clean.autolink_html(cleaned_content)
         cleaned_content = self.cleaner.clean_html(cleaned_content)
         self.content_cleaned = cleaned_content
