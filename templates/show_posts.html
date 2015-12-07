@@ -27,15 +27,9 @@
     <div class="col-md-12">
       <div class="panel panel-default">
         <div class="panel-body">
-          {% if perms.comments.change_post or perms.comments.delete_post %}
-            {% with post=thread.first_post %}
-            {% include "includes/post.html" %}
-            {% endwith %}
-          {% else %}
-            {% with post=thread.first_active_post %}
-            {% include "includes/post.html" %}
-            {% endwith %}
-          {% endif %}
+          {% with post=first_post %}
+          {% include "includes/post.html" %}
+          {% endwith %}
         </div>
       </div>
     </div>

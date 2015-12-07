@@ -122,9 +122,18 @@ def show_posts(request, category, thread_id):
         except Thread.DoesNotExist, e2:
             raise e
 
+    try:
+        if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
+            first_post = thread.first_post
+        else:
+            first_post = thread.first_active_post
+    except Post.DoesNotExist, e:
+        raise Http404
+
     template_values = {
         'category': category,
         'thread': thread,
+        'first_post': first_post,
     }
 
     return render_to_response('show_posts.html', template_values, context_instance=RequestContext(request))
