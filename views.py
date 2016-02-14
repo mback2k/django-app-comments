@@ -242,10 +242,10 @@ def vote_post(request, category, thread_id, post_id, mode):
 
     try:
         vote = Vote.objects.get(user=request.user, post=post)
-        vote.mode = modes[mode]
+        vote.delete()
     except Vote.DoesNotExist:
         vote = Vote(user=request.user, post=post, mode=modes[mode])
-    vote.save()
+        vote.save()
 
     vote_sum = post.vote_sum
     if vote_sum:
