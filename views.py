@@ -6,9 +6,11 @@ from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect, Htt
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
+from django.forms import inlineformset_factory
 from django.contrib import messages
+from django.db import transaction
 from django.utils import timezone
-from .models import User, Author, Thread, Post, Vote
+from .models import Author, Thread, Post, Vote, Media
 from .forms import PostNewForm, PostReplyForm, PostEditForm
 from .tasks import notification_post_moderation_pending, notification_post_approved, notification_post_new_reply
 import os.path, datetime
@@ -140,18 +142,30 @@ def show_posts(request, category, thread_id):
 
 
 @login_required
+@transaction.atomic
 def new_post(request, category):
+    MediaFormset = inlineformset_factory(Post, Media, fields=('image',),
+                                         min_num=0, max_num=3, can_delete=False)
+
     if request.method == 'POST':
         post_form = PostNewForm(data=request.POST)
+        media_formset = MediaFormset(data=request.POST, files=request.FILES)
     else:
         post_form = PostNewForm()
+        media_formset = MediaFormset()
 
-    if post_form.is_valid():
+    if post_form.is_valid() and media_formset.is_valid():
         post = post_form.save(commit=False)
+        media_set = media_formset.save(commit=False)
+
         post.thread = Thread.objects.create(category=category)
         post.author = Author.objects.get(pk=request.user.pk)
-        post.is_approved = post.author.posts.filter(is_approved=True).exists()
+        post.is_approved = post.author.posts.filter(is_approved=True).exists() and not len(media_set)
         post.save()
+
+        for media in media_set:
+            media.post = post
+            media.save()
 
         if not post.is_approved:
             notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
@@ -165,25 +179,38 @@ def new_post(request, category):
     template_values = {
         'category': category,
         'post_form': post_form,
+        'media_formset': media_formset,
     }
 
     return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))
 
 @login_required
+@transaction.atomic
 def reply_post(request, category, thread_id, parent_id):
     thread = get_object_or_404(Thread, category=category, id=thread_id)
     parent = get_object_or_404(Post, thread=thread, id=parent_id)
 
+    MediaFormset = inlineformset_factory(Post, Media, fields=('image',),
+                                         min_num=0, max_num=3, can_delete=False)
+
     if request.method == 'POST':
         post_form = PostReplyForm(data=request.POST)
+        media_formset = MediaFormset(data=request.POST, files=request.FILES)
     else:
         post_form = PostReplyForm(initial={'parent': parent, 'thread': thread})
+        media_formset = MediaFormset()
 
-    if post_form.is_valid():
+    if post_form.is_valid() and media_formset.is_valid():
         post = post_form.save(commit=False)
+        media_set = media_formset.save(commit=False)
+
         post.author = Author.objects.get(pk=request.user.pk)
-        post.is_approved = post.author.posts.filter(is_approved=True).exists()
+        post.is_approved = post.author.posts.filter(is_approved=True).exists() and not len(media_set)
         post.save()
+
+        for media in media_set:
+            media.post = post
+            media.save()
 
         if not post.is_approved:
             notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
@@ -198,6 +225,7 @@ def reply_post(request, category, thread_id, parent_id):
     template_values = {
         'category': category,
         'post_form': post_form,
+        'media_formset': media_formset,
         'thread': thread,
         'parent': parent,
     }
@@ -205,6 +233,7 @@ def reply_post(request, category, thread_id, parent_id):
     return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))
 
 @login_required
+@transaction.atomic
 def edit_post(request, category, thread_id, post_id):
     author = Author.objects.get(pk=request.user.pk)
     thread = get_object_or_404(Thread, category=category, id=thread_id)
@@ -213,21 +242,39 @@ def edit_post(request, category, thread_id, post_id):
     if not post.is_editable:
         return HttpResponseRedirect(thread.get_absolute_url())
 
+    MediaFormset = inlineformset_factory(Post, Media, fields=('image',),
+                                         min_num=0, max_num=3, can_delete=True)
+
     if request.method == 'POST':
         post_form = PostEditForm(instance=post, data=request.POST)
+        media_formset = MediaFormset(instance=post, data=request.POST, files=request.FILES)
     else:
         post_form = PostEditForm(instance=post)
+        media_formset = MediaFormset(instance=post)
 
-    if post_form.is_valid():
-        post = post_form.save()
+    if post_form.is_valid() and media_formset.is_valid():
+        post = post_form.save(commit=False)
+        media_set = media_formset.save(commit=False)
 
-        messages.success(request, _('<strong>Great</strong>, your comment has successfully been edited.'))
+        post.is_approved = post.author.posts.exclude(id=post.id).filter(is_approved=True).exists() and not len(media_set)
+        post.save()
+
+        for media in media_set:
+            media.save()
+
+        if not post.is_approved:
+            notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
+            messages.info(request, _('<strong>Thanks</strong>, your comment has successfully been edited but requires approval.<br />' \
+                                     'You will be informed via email once it has been reviewed and approved.'))
+        else:
+            messages.success(request, _('<strong>Great</strong>, your comment has successfully been edited.'))
 
         return HttpResponseRedirect(post.get_absolute_url())
 
     template_values = {
         'category': category,
         'post_form': post_form,
+        'media_formset': media_formset,
     }
 
     return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))

@@ -4,6 +4,9 @@
     width: 10%;
     height: auto;
 }
+.post-thumb {
+    margin-bottom: 10px;
+}
 .post-media {
     max-width: 128px;
     max-height: 128px;

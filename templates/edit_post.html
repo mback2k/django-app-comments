@@ -17,9 +17,13 @@
       {% if parent %}
         {% include "includes/thread.html" with post=parent %}
       {% endif %}
-      <form class="form-horizontal" method="post" role="form">
+      <form class="form-horizontal" method="post" role="form" enctype="multipart/form-data">
         {% csrf_token %}
         {{ post_form|bootstrapform }}
+        {{ media_formset.management_form|bootstrapform }}
+        {% for media_form in media_formset %}
+        {{ media_form|bootstrapform }}
+        {% endfor %}
         <div class="form-group">
           <div class="col-sm-offset-2 col-sm-10 btn-group">
             <input type="submit" value="Submit" class="btn btn-primary" />

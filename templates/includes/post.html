@@ -13,7 +13,7 @@
     <h4 class="media-heading">{{ post.author.name }} wrote:</h4>
     {{ post.cleaned_content|safe }}
     {% for media in post.media.all %}
-    <a href="{{ media.image.url }}" class="thumbnail">
+    <a href="{{ media.image.url }}" class="post-thumb thumbnail">
       <img class="media-object post-media" src="{{ media.image.url }}"{% if media.width <= 128 %} width="{{ media.width }}px"{% endif %} height="{% if media.height <= 128 %}{{ media.height }}{% else %}128{% endif %}px" />
     </a>
     {% endfor %}
