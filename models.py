@@ -169,6 +169,11 @@ class Media(models.Model):
     width = models.SmallIntegerField(_('Width'))
     height = models.SmallIntegerField(_('Height'))
 
+class Attachment(models.Model):
+    post = models.ForeignKey(Post, related_name='attachments')
+    file = models.FileField(_('File'), upload_to='comments/posts/%Y/%m/%d',
+                                       max_length=250)
+
 @receiver(signals.pre_save, sender=Post)
 def handle_post_pre_save_signal(sender, instance, update_fields, **kwargs):
     if not update_fields or 'content' in update_fields:

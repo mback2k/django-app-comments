@@ -21,6 +21,15 @@
       {% endfor %}
     </p>
     {% endif %}
+    {% if post.attachments.all %}
+    <p class="post-attachments">
+      {% for attachment in post.attachments.all %}
+      <a href="{{ attachment.file.url }}" title="Attachment #{{ attachment.id }}">
+        <span class="glyphicon glyphicon-save" aria-hidden="true"></span> Attachment #{{ attachment.id }}
+      </a>&nbsp;
+      {% endfor %}
+    </p>
+    {% endif %}
     <p class="pull-left text-muted">
       {% if post.votes.exists %}<small>
         <span class="glyphicon glyphicon-star"></span> {{ post.vote_sum }}

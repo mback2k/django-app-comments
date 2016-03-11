@@ -10,7 +10,7 @@ from django.forms import inlineformset_factory
 from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
-from .models import Author, Thread, Post, Vote, Media
+from .models import Author, Thread, Post, Vote, Media, Attachment
 from .forms import PostNewForm, PostReplyForm, PostEditForm
 from .tasks import notification_post_moderation_pending, notification_post_approved, notification_post_new_reply
 import os.path, datetime
@@ -146,26 +146,35 @@ def show_posts(request, category, thread_id):
 def new_post(request, category):
     MediaFormset = inlineformset_factory(Post, Media, fields=('image',),
                                          min_num=0, max_num=3, can_delete=False)
+    AttachmentFormset = inlineformset_factory(Post, Attachment, fields=('file',),
+                                              min_num=0, max_num=3, can_delete=False)
 
     if request.method == 'POST':
         post_form = PostNewForm(data=request.POST)
-        media_formset = MediaFormset(data=request.POST, files=request.FILES)
+        media_formset = MediaFormset(data=request.POST, files=request.FILES, prefix='media')
+        attachment_formset = AttachmentFormset(data=request.POST, files=request.FILES, prefix='attachment')
     else:
         post_form = PostNewForm()
-        media_formset = MediaFormset()
+        media_formset = MediaFormset(prefix='media')
+        attachment_formset = AttachmentFormset(prefix='attachment')
 
-    if post_form.is_valid() and media_formset.is_valid():
+    if post_form.is_valid() and media_formset.is_valid() and attachment_formset.is_valid():
         post = post_form.save(commit=False)
         media_set = media_formset.save(commit=False)
+        attachment_set = attachment_formset.save(commit=False)
 
         post.thread = Thread.objects.create(category=category)
         post.author = Author.objects.get(pk=request.user.pk)
-        post.is_approved = post.author.posts.filter(is_approved=True).exists() and not len(media_set)
+        post.is_approved = post.author.posts.filter(is_approved=True).exists() and not len(media_set) and not len(attachment_set)
         post.save()
 
         for media in media_set:
             media.post = post
             media.save()
+
+        for attachment in attachment_set:
+            attachment.post = post
+            attachment.save()
 
         if not post.is_approved:
             notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
@@ -180,6 +189,7 @@ def new_post(request, category):
         'category': category,
         'post_form': post_form,
         'media_formset': media_formset,
+        'attachment_formset': attachment_formset,
     }
 
     return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))
@@ -192,25 +202,34 @@ def reply_post(request, category, thread_id, parent_id):
 
     MediaFormset = inlineformset_factory(Post, Media, fields=('image',),
                                          min_num=0, max_num=3, can_delete=False)
+    AttachmentFormset = inlineformset_factory(Post, Attachment, fields=('file',),
+                                              min_num=0, max_num=3, can_delete=False)
 
     if request.method == 'POST':
         post_form = PostReplyForm(data=request.POST)
-        media_formset = MediaFormset(data=request.POST, files=request.FILES)
+        media_formset = MediaFormset(data=request.POST, files=request.FILES, prefix='media')
+        attachment_formset = AttachmentFormset(data=request.POST, files=request.FILES, prefix='attachment')
     else:
         post_form = PostReplyForm(initial={'parent': parent, 'thread': thread})
-        media_formset = MediaFormset()
+        media_formset = MediaFormset(prefix='media')
+        attachment_formset = AttachmentFormset(prefix='attachment')
 
-    if post_form.is_valid() and media_formset.is_valid():
+    if post_form.is_valid() and media_formset.is_valid() and attachment_formset.is_valid():
         post = post_form.save(commit=False)
         media_set = media_formset.save(commit=False)
+        attachment_set = attachment_formset.save(commit=False)
 
         post.author = Author.objects.get(pk=request.user.pk)
-        post.is_approved = post.author.posts.filter(is_approved=True).exists() and not len(media_set)
+        post.is_approved = post.author.posts.filter(is_approved=True).exists() and not len(media_set) and not len(attachment_set)
         post.save()
 
         for media in media_set:
             media.post = post
             media.save()
+
+        for attachment in attachment_set:
+            attachment.post = post
+            attachment.save()
 
         if not post.is_approved:
             notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
@@ -226,6 +245,7 @@ def reply_post(request, category, thread_id, parent_id):
         'category': category,
         'post_form': post_form,
         'media_formset': media_formset,
+        'attachment_formset': attachment_formset,
         'thread': thread,
         'parent': parent,
     }
@@ -244,23 +264,31 @@ def edit_post(request, category, thread_id, post_id):
 
     MediaFormset = inlineformset_factory(Post, Media, fields=('image',),
                                          min_num=0, max_num=3, can_delete=True)
+    AttachmentFormset = inlineformset_factory(Post, Attachment, fields=('file',),
+                                              min_num=0, max_num=3, can_delete=False)
 
     if request.method == 'POST':
         post_form = PostEditForm(instance=post, data=request.POST)
-        media_formset = MediaFormset(instance=post, data=request.POST, files=request.FILES)
+        media_formset = MediaFormset(instance=post, data=request.POST, files=request.FILES, prefix='media')
+        attachment_formset = AttachmentFormset(instance=post, data=request.POST, files=request.FILES, prefix='attachment')
     else:
         post_form = PostEditForm(instance=post)
         media_formset = MediaFormset(instance=post)
+        attachment_formset = AttachmentFormset(instance=post)
 
-    if post_form.is_valid() and media_formset.is_valid():
+    if post_form.is_valid() and media_formset.is_valid() and attachment_formset.is_valid():
         post = post_form.save(commit=False)
         media_set = media_formset.save(commit=False)
+        attachment_set = attachment_formset.save(commit=False)
 
-        post.is_approved = post.author.posts.exclude(id=post.id).filter(is_approved=True).exists() and not len(media_set)
+        post.is_approved = post.author.posts.exclude(id=post.id).filter(is_approved=True).exists() and not len(media_set) and not len(attachment_set)
         post.save()
 
         for media in media_set:
             media.save()
+
+        for attachment in attachment_set:
+            attachment.save()
 
         if not post.is_approved:
             notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
@@ -275,6 +303,7 @@ def edit_post(request, category, thread_id, post_id):
         'category': category,
         'post_form': post_form,
         'media_formset': media_formset,
+        'attachment_formset': attachment_formset,
     }
 
     return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))

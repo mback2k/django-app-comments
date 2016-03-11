@@ -24,6 +24,10 @@
         {% for media_form in media_formset %}
           {{ media_form|bootstrapform }}
         {% endfor %}
+        {{ attachment_formset.management_form|bootstrapform }}
+        {% for attachment_form in attachment_formset %}
+          {{ attachment_form|bootstrapform }}
+        {% endfor %}
         <div class="form-group">
           <div class="col-sm-offset-2 col-sm-10 btn-group">
             <input type="submit" value="Submit" class="btn btn-primary" />
