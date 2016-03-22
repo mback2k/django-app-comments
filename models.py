@@ -149,14 +149,14 @@ class Post(models.Model):
         return self.votes.aggregate(vote_sum=models.Sum('mode'))['vote_sum']
 
 class Vote(models.Model):
-    CATEGORIES = (
+    MODES = (
         ( 1, _('Up')),
         (-1, _('Down')),
     )
 
     post = models.ForeignKey(Post, related_name='votes')
     user = models.ForeignKey(User, related_name='votes')
-    mode = models.SmallIntegerField(_('Mode'))
+    mode = models.SmallIntegerField(_('Mode'), choices=MODES)
 
     class Meta:
         unique_together = ('post', 'user')
