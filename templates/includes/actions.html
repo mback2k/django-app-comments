@@ -1,3 +1,4 @@
+{% load votes %}
 <div class="pull-right">
   <div class="btn-group">
     {% if user.is_authenticated %}
@@ -6,10 +7,11 @@
       <span class="glyphicon glyphicon-edit"></span> Edit
     </a>
     {% endif %}
-    <a href="{% url 'comments:vote_post' post.thread.category post.thread.id post.id 'up' %}" class="btn btn-default btn-xs" role="button" title="Vote up">
+    {% get_vote post user as vote %}
+    <a href="{% url 'comments:vote_post' post.thread.category post.thread.id post.id 'up' %}" class="btn btn-default btn-xs{% if vote.mode == 1 %} active{% endif %}" role="button" title="Vote up">
       <span class="glyphicon glyphicon-chevron-up"></span>
     </a>
-    <a href="{% url 'comments:vote_post' post.thread.category post.thread.id post.id 'down' %}" class="btn btn-default btn-xs" role="button" title="Vote down">
+    <a href="{% url 'comments:vote_post' post.thread.category post.thread.id post.id 'down' %}" class="btn btn-default btn-xs{% if vote.mode == -1 %} active{% endif %}" role="button" title="Vote down">
       <span class="glyphicon glyphicon-chevron-down"></span>
     </a>
     <a href="{% url 'comments:reply_post' post.thread.category post.thread.id post.id %}" class="btn btn-primary btn-xs" role="button" title="Reply">

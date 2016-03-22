@@ -319,9 +319,11 @@ def vote_post(request, category, thread_id, post_id, mode):
     try:
         vote = Vote.objects.get(user=request.user, post=post)
         vote.delete()
+        messages.info(request, _('<strong>Thanks</strong>, your vote has successfully been removed.'))
     except Vote.DoesNotExist:
         vote = Vote(user=request.user, post=post, mode=modes[mode])
         vote.save()
+        messages.success(request, _('<strong>Thanks</strong>, your vote has successfully been recorded.'))
 
     vote_sum = post.vote_sum
     if vote_sum:
@@ -336,8 +338,6 @@ def vote_post(request, category, thread_id, post_id, mode):
             notification_post_moderation_pending.delay(post_id=post.id, mode='flagged')
         if post.is_highlighted and not was_highlighted_post:
             notification_post_moderation_pending.delay(post_id=post.id, mode='highlighted')
-
-    messages.success(request, _('<strong>Thanks</strong>, your vote has successfully been recorded.'))
 
     return HttpResponseRedirect(post.get_absolute_url())
 
