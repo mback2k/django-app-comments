@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
-from .models import Thread, Post, Vote, Media
+from .models import Thread, Post, Vote, Media, Attachment
 
 class ThreadAdmin(admin.ModelAdmin):
     list_display = ('category', 'crdate', 'tstamp', 'is_closed', 'is_deleted')
@@ -27,7 +27,12 @@ class MediaAdmin(admin.ModelAdmin):
     raw_id_fields = ('post',)
     list_display = ('post', 'image', 'width', 'height')
 
+class AttachmentAdmin(admin.ModelAdmin):
+    raw_id_fields = ('post',)
+    list_display = ('post', 'file')
+
 admin.site.register(Thread, ThreadAdmin)
 admin.site.register(Post, PostAdmin)
 admin.site.register(Vote, VoteAdmin)
 admin.site.register(Media, MediaAdmin)
+admin.site.register(Attachment, AttachmentAdmin)
