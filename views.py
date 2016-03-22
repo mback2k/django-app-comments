@@ -177,7 +177,7 @@ def new_post(request, category):
             attachment.save()
 
         if not post.is_approved:
-            notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
+            notification_post_moderation_pending.apply_async(countdown=1, kwargs={'post_id': post.id, 'mode': 'approval'})
             messages.info(request, _('<strong>Thanks</strong>, your comment has successfully been submitted but requires approval.<br />' \
                                      'You will be informed via email once it has been reviewed and approved.'))
         else:
@@ -232,11 +232,11 @@ def reply_post(request, category, thread_id, parent_id):
             attachment.save()
 
         if not post.is_approved:
-            notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
+            notification_post_moderation_pending.apply_async(countdown=1, kwargs={'post_id': post.id, 'mode': 'approval'})
             messages.info(request, _('<strong>Thanks</strong>, your comment has successfully been submitted but requires approval.<br />' \
                                      'You will be informed via email once it has been reviewed and approved.'))
         else:
-            notification_post_new_reply.delay(post_id=post.id)
+            notification_post_new_reply.apply_async(countdown=1, kwargs={'post_id': post.id})
             messages.success(request, _('<strong>Thanks</strong>, your comment has successfully been submitted and posted.'))
 
         return HttpResponseRedirect(post.get_absolute_url())
@@ -291,7 +291,7 @@ def edit_post(request, category, thread_id, post_id):
             attachment.save()
 
         if not post.is_approved:
-            notification_post_moderation_pending.delay(post_id=post.id, mode='approval')
+            notification_post_moderation_pending.apply_async(countdown=1, kwargs={'post_id': post.id, 'mode': 'approval'})
             messages.info(request, _('<strong>Thanks</strong>, your comment has successfully been edited but requires approval.<br />' \
                                      'You will be informed via email once it has been reviewed and approved.'))
         else:
