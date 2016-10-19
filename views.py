@@ -273,8 +273,8 @@ def edit_post(request, category, thread_id, post_id):
         attachment_formset = AttachmentFormset(instance=post, data=request.POST, files=request.FILES, prefix='attachment')
     else:
         post_form = PostEditForm(instance=post)
-        media_formset = MediaFormset(instance=post)
-        attachment_formset = AttachmentFormset(instance=post)
+        media_formset = MediaFormset(instance=post, prefix='media')
+        attachment_formset = AttachmentFormset(instance=post, prefix='attachment')
 
     if post_form.is_valid() and media_formset.is_valid() and attachment_formset.is_valid():
         post = post_form.save(commit=False)
