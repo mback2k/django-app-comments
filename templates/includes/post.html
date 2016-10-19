@@ -38,7 +38,7 @@
     {% include "includes/actions.html" %}
     <hr />
     {% if perms.comments.change_post or perms.comments.delete_post %}
-      {% include "includes/posts.html" with posts=post.posts.all %}
+      {% include "includes/posts.html" with posts=post.staff_posts.all %}
     {% else %}
       {% include "includes/posts.html" with posts=post.active_posts.all %}
     {% endif %}

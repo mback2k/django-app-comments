@@ -126,7 +126,7 @@ def show_posts(request, category, thread_id):
 
     try:
         if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
-            first_post = thread.first_post
+            first_post = thread.first_staff_post
         else:
             first_post = thread.first_active_post
     except Post.DoesNotExist, e:

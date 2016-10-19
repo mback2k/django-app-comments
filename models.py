@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from django.db.models import signals
+from django.db.models import Q, signals
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
@@ -62,12 +62,13 @@ class Thread(models.Model):
         return thread_link
 
     @property
-    def first_post(self):
-        return self.posts.filter(parent=None).get()
+    def first_staff_post(self):
+        yesterday = timezone.now() - datetime.timedelta(days=1)
+        return self.posts.filter(parent=None).exclude(Q(is_deleted=True) | Q(is_spam=True), tstamp__lt=yesterday).get()
 
     @property
     def first_active_post(self):
-        return self.posts.filter(parent=None).exclude(is_deleted=True).exclude(is_spam=True).filter(is_approved=True).get()
+        return self.posts.filter(parent=None).exclude(Q(is_deleted=True) | Q(is_spam=True)).filter(is_approved=True).get()
 
 class Post(models.Model):
     parent = models.ForeignKey('self', related_name='posts', blank=True, null=True)
@@ -131,14 +132,20 @@ class Post(models.Model):
         return self.content_cleaned
 
     @property
+    def staff_posts(self):
+        yesterday = timezone.now() - datetime.timedelta(days=1)
+        return self.posts.exclude(Q(is_deleted=True) | Q(is_spam=True), tstamp__lt=yesterday)
+
+    @property
     def active_posts(self):
-        return self.posts.exclude(is_deleted=True).exclude(is_spam=True).filter(is_approved=True)
+        return self.posts.exclude(Q(is_deleted=True) | Q(is_spam=True)).filter(is_approved=True)
 
     @property
     def is_editable(self):
         if self.thread.is_closed:
             return False
-        if self.crdate < timezone.now() - datetime.timedelta(days=1):
+        yesterday = timezone.now() - datetime.timedelta(days=1)
+        if self.crdate < yesterday:
             return False
         if self.posts.exists():
             return False
