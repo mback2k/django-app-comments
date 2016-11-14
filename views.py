@@ -349,6 +349,23 @@ def vote_post(request, category, thread_id, post_id, mode):
     return HttpResponseRedirect(post.get_absolute_url())
 
 
+@permission_required('comments.change_thread')
+def manage_thread(request, category, thread_id, mode):
+    thread = get_object_or_404(Thread, category=category, id=thread_id)
+
+    modes = {'open': False, 'close': True}
+
+    thread.is_closed = modes[mode]
+    thread.save(update_fields=('is_closed', 'tstamp'))
+
+    if not thread.is_closed:
+        messages.success(request, _('<strong>Great</strong>, the thread has successfully been opened.'))
+    else:
+        messages.warning(request, _('<strong>Careful</strong>, the thread has now been closed.'))
+
+    return HttpResponseRedirect(thread.get_absolute_url())
+
+
 @permission_required('comments.change_post')
 def approve_post(request, category, thread_id, post_id):
     thread = get_object_or_404(Thread, category=category, id=thread_id)

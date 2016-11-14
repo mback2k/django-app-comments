@@ -22,6 +22,19 @@
 
 {% block content %}
   <hr />
+  {% if perms.comments.change_thread %}
+  <div class="pull-right">
+    {% if not thread.is_closed %}
+    <a href="{% url 'comments:manage_thread' thread.category thread.id 'close' %}" class="btn btn-danger" role="button" title="Close thread">
+      <span class="glyphicon glyphicon-minus"></span> Close
+    </a>
+    {% else %}
+    <a href="{% url 'comments:manage_thread' thread.category thread.id 'open' %}" class="btn btn-success" role="button" title="Open thread">
+      <span class="glyphicon glyphicon-ok"></span> Open
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
   <h3>{{ thread.get_category_display }} created on {{ thread.crdate|localedate }}</h3>
   <div class="row">
     <div class="col-md-12">
