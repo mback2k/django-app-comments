@@ -22,7 +22,14 @@
 {% block content %}
   <hr />
   <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-6">
+	  <div class="btn-group">
+	    <a href="{% url 'comments:show_threads' category %}" class="btn btn-primary{% if filter == 'open'%} active{% endif %}" role="button" title="Show open">Show open</a>
+	    <a href="{% url 'comments:show_threads' category 'all' %}" class="btn btn-default{% if filter == 'all'%} active{% endif %}" role="button" title="Show all">Show all</a>
+	    <a href="{% url 'comments:show_threads' category 'closed' %}" class="btn btn-default{% if filter == 'closed'%} active{% endif %}" role="button" title="Show closed">Show closed</a>
+	  </div>
+    </div>
+    <div class="col-md-6">
       <p class="text-right">
         <a href="{% url 'comments:new_post' category %}" class="btn btn-primary" role="button" title="New {{ category }}">
           <span class="glyphicon glyphicon-comment"></span> New {{ category }}

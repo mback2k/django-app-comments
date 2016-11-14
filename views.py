@@ -15,18 +15,22 @@ from .forms import PostNewForm, PostReplyForm, PostEditForm
 from .tasks import notification_post_moderation_pending, notification_post_approved, notification_post_new_reply
 import os.path, datetime
 
-def show_threads_latest(request, category):
+def show_threads_latest(request, category, filter='open'):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
         thread_list = Thread.objects.filter(category=category)
     else:
         thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
+    if filter == 'open':
+        thread_list = thread_list.filter(is_closed=False)
+    elif filter == 'closed':
+        thread_list = thread_list.filter(is_closed=True)
     return thread_list
 
-def show_threads_etag(request, category):
+def show_threads_etag(request, category, filter='open'):
     if len(messages.get_messages(request)):
         return None
     try:
-        thread_list = show_threads_latest(request, category)
+        thread_list = show_threads_latest(request, category, filter)
         thread_list_posts = Post.objects.filter(thread__in=thread_list)
         etag = '%d:%d:%d:%d' % (thread_list.count(),
                                 thread_list.latest('tstamp').id,
@@ -34,15 +38,17 @@ def show_threads_etag(request, category):
                                 thread_list_posts.latest('tstamp').id)
         if request.user.is_authenticated():
             etag += ':%d' % request.user.id
+        if filter:
+            etag += ':%s' % filter
         return etag
     except Thread.DoesNotExist, e:
         return None
 
-def show_threads_last_modified(request, category):
+def show_threads_last_modified(request, category, filter='open'):
     if len(messages.get_messages(request)):
         return None
     try:
-        thread_list = show_threads_latest(request, category)
+        thread_list = show_threads_latest(request, category, filter)
         thread_list_posts = Post.objects.filter(thread__in=thread_list)
         last_modified = max(thread_list.latest('tstamp').tstamp,
                             thread_list_posts.latest('tstamp').tstamp,
@@ -55,8 +61,8 @@ def show_threads_last_modified(request, category):
         return None
 
 @condition(etag_func=show_threads_etag, last_modified_func=show_threads_last_modified)
-def show_threads(request, category):
-    thread_list = show_threads_latest(request, category)
+def show_threads(request, category, filter='open'):
+    thread_list = show_threads_latest(request, category, filter)
 
     paginator = Paginator(thread_list, 10)
     page = request.GET.get('page')
@@ -72,6 +78,7 @@ def show_threads(request, category):
     template_values = {
         'category': category,
         'threads': threads,
+        'filter': filter,
     }
 
     return render_to_response('show_threads.html', template_values, context_instance=RequestContext(request))
