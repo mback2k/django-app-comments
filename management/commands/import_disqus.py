@@ -3,7 +3,7 @@ from django.db import transaction
 from django.utils import timezone, text
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
-from social.apps.django_app.default.models import UserSocialAuth
+from social_django.models import UserSocialAuth
 from ...models import User, Author, Thread, Post, Vote, Media
 from disqusapi import DisqusAPI
 import os.path, isodate, urllib2
