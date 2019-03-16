@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from . import views
 
-urlpatterns = patterns('',
+urlpatterns = (
     url(r'^comments/(?P<category>(discussion|request|issue))s/(?P<thread_id>\d+)/moderate/(?P<post_id>\d+)/approve/$', views.approve_post, name='approve_post'),
     url(r'^comments/(?P<category>(discussion|request|issue))s/(?P<thread_id>\d+)/moderate/(?P<post_id>\d+)/spam/$', views.spam_post, name='spam_post'),
     url(r'^comments/(?P<category>(discussion|request|issue))s/(?P<thread_id>\d+)/moderate/(?P<post_id>\d+)/delete/$', views.delete_post, name='delete_post'),

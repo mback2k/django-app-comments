@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.views.decorators.http import condition
 from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect, Http404
 from django.template import RequestContext
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.forms import inlineformset_factory
 from django.contrib import messages
@@ -81,7 +81,7 @@ def show_threads(request, category, filter='open'):
         'filter': filter,
     }
 
-    return render_to_response('show_threads.html', template_values, context_instance=RequestContext(request))
+    return render(request, 'show_threads.html', template_values)
 
 def show_posts_latest(request, category, thread_id):
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
@@ -145,7 +145,7 @@ def show_posts(request, category, thread_id):
         'first_post': first_post,
     }
 
-    return render_to_response('show_posts.html', template_values, context_instance=RequestContext(request))
+    return render(request, 'show_posts.html', template_values)
 
 
 @login_required
@@ -199,7 +199,7 @@ def new_post(request, category):
         'attachment_formset': attachment_formset,
     }
 
-    return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))
+    return render(request, 'edit_post.html', template_values)
 
 @login_required
 @transaction.atomic
@@ -257,7 +257,7 @@ def reply_post(request, category, thread_id, parent_id):
         'parent': parent,
     }
 
-    return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))
+    return render(request, 'edit_post.html', template_values)
 
 @login_required
 @transaction.atomic
@@ -313,7 +313,7 @@ def edit_post(request, category, thread_id, post_id):
         'attachment_formset': attachment_formset,
     }
 
-    return render_to_response('edit_post.html', template_values, context_instance=RequestContext(request))
+    return render(request, 'edit_post.html', template_values)
 
 
 @login_required
