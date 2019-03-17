@@ -5,7 +5,7 @@ from .models import Thread, Post, Vote, Media, Attachment
 class ThreadAdmin(admin.ModelAdmin):
     list_display = ('category', 'crdate', 'tstamp', 'is_closed', 'is_deleted')
     list_filter = ('is_closed', 'is_deleted', 'crdate', 'tstamp')
-    date_hierarchy = 'crdate'
+    #date_hierarchy = 'crdate'
 
 class PostAdmin(admin.ModelAdmin):
     raw_id_fields = ('thread', 'author')
@@ -14,7 +14,7 @@ class PostAdmin(admin.ModelAdmin):
                     'is_deleted', 'is_approved', 'is_flagged', 'is_spam', 'is_highlighted')
     list_filter = ('is_deleted', 'is_approved', 'is_flagged', 'is_spam', 'is_highlighted',
                    'crdate', 'tstamp', 'edited')
-    date_hierarchy = 'crdate'
+    #date_hierarchy = 'crdate'
     list_select_related = True
     list_per_page = 50
 
