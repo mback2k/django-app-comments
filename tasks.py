@@ -83,7 +83,7 @@ def clean_post_content(post_id):
     try:
         post = Post.objects.get(id=post_id)
         post.clean_content()
-    except Post.DoesNotExist, e:
+    except Post.DoesNotExist as e:
         raise clean_post_content.retry(exc=e)
 
 #@periodic_task(run_every=crontab(minute=42))

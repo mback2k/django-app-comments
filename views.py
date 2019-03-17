@@ -41,7 +41,7 @@ def show_threads_etag(request, category, filter='open'):
         if filter:
             etag += ':%s' % filter
         return etag
-    except Thread.DoesNotExist, e:
+    except Thread.DoesNotExist:
         return None
 
 def show_threads_last_modified(request, category, filter='open'):
@@ -57,7 +57,7 @@ def show_threads_last_modified(request, category, filter='open'):
         if request.user.is_authenticated():
             last_modified = max(last_modified, request.user.last_login)
         return last_modified
-    except Thread.DoesNotExist, e:
+    except Thread.DoesNotExist:
         return None
 
 @condition(etag_func=show_threads_etag, last_modified_func=show_threads_last_modified)
@@ -103,7 +103,7 @@ def show_posts_etag(request, category, thread_id):
         if request.user.is_authenticated():
             etag += ':%d' % request.user.id
         return etag
-    except Http404, e:
+    except Http404:
         return None
 
 def show_posts_last_modified(request, category, thread_id):
@@ -117,18 +117,18 @@ def show_posts_last_modified(request, category, thread_id):
         if request.user.is_authenticated():
             last_modified = max(last_modified, request.user.last_login)
         return last_modified
-    except Http404, e:
+    except Http404:
         return None
 
 @condition(etag_func=show_posts_etag, last_modified_func=show_posts_last_modified)
 def show_posts(request, category, thread_id):
     try:
         thread = show_posts_latest(request, category, thread_id)
-    except Http404, e:
+    except Http404 as e:
         try:
             thread = Thread.objects.exclude(category=category).get(id=thread_id)
             return HttpResponsePermanentRedirect(thread.get_absolute_url())
-        except Thread.DoesNotExist, e2:
+        except Thread.DoesNotExist:
             raise e
 
     try:
@@ -136,7 +136,7 @@ def show_posts(request, category, thread_id):
             first_post = thread.first_staff_post
         else:
             first_post = thread.first_active_post
-    except Post.DoesNotExist, e:
+    except Post.DoesNotExist:
         raise Http404
 
     template_values = {

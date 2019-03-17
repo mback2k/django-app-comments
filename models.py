@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone, html, safestring
 from django.dispatch import receiver
 from lxml.html import clean
-import urllib, hashlib, datetime
+import urllib.parse, hashlib, datetime
 
 class Author(User):
     class Meta:
@@ -30,9 +30,9 @@ class Author(User):
             hash = hashlib.md5(self.name.encode('utf-8')).hexdigest()
         gravatar_url = "//www.gravatar.com/avatar/%s.jpg?" % hash
         if self.email:
-            gravatar_url += urllib.urlencode({'d': 'retro', 's': 64})
+            gravatar_url += urllib.parse.urlencode({'d': 'retro', 's': 64})
         else:
-            gravatar_url += urllib.urlencode({'d': 'retro', 's': 64, 'f': 'y'})
+            gravatar_url += urllib.parse.urlencode({'d': 'retro', 's': 64, 'f': 'y'})
         return gravatar_url
 
 class Thread(models.Model):
@@ -53,7 +53,7 @@ class Thread(models.Model):
     class Meta:
         ordering = ('-crdate', '-tstamp')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.get_category_display()
 
     def get_absolute_url(self):
@@ -95,8 +95,8 @@ class Post(models.Model):
     class Meta:
         ordering = ('crdate', 'tstamp')
 
-    def __unicode__(self):
-        return u'%s by %s' % (self.thread, self.author)
+    def __str__(self):
+        return '%s by %s' % (self.thread, self.author)
 
     def get_absolute_url(self):
         thread_kwargs = {'category': self.thread.category, 'thread_id': self.thread.id}

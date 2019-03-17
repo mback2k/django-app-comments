@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 from social_django.models import UserSocialAuth
 from ...models import User, Author, Thread, Post, Vote, Media
 from disqusapi import DisqusAPI
-import os.path, isodate, urllib2
+import os.path, isodate, urllib.request
 
 class Command(BaseCommand):
     args = '<disqus-forum> <secret-key> <public-key>'
@@ -26,9 +26,9 @@ class Command(BaseCommand):
         disqus_posts_list = []
         while len(disqus_posts):
             disqus_posts_list += disqus_posts.response
-            print 'Fetched', len(disqus_posts_list), 'posts'
+            print('Fetched', len(disqus_posts_list), 'posts')
             if disqus_posts.cursor.get('hasNext', False):
-                print 'Fetching more posts'
+                print('Fetching more posts')
                 disqus_posts = disqus_api.posts.list(forum=disqus_forum,
                                                      include=disqus_posts_include,
                                                      order='asc',
@@ -49,7 +49,7 @@ class Command(BaseCommand):
             if post_parent_id == parent_id:
                 post_id = int(disqus_post.get('id'))
 
-                print '\t'*depth, post_id
+                print('\t'*depth, post_id)
 
                 post_message = disqus_post.get('message')
                 post_created = disqus_post.get('createdAt')
@@ -114,7 +114,7 @@ class Command(BaseCommand):
         try:
             author = Author.objects.get(id=int(author_id),
                                         is_active=True)
-            print 'MATCH:', author_id, author
+            print('MATCH:', author_id, author)
 
         except Author.DoesNotExist:
             author = Author.objects.create_user(id=int(author_id),
@@ -128,7 +128,7 @@ class Command(BaseCommand):
                                           provider='disqus',
                                           uid=author_id)
 
-        print author.username
+        print(author.username)
         return author
 
     def handle_votes(self, disqus_api, disqus_post_thread, post, vote, votes):
@@ -149,8 +149,8 @@ class Command(BaseCommand):
                 if disqus_media_location.startswith('//'):
                     disqus_media_location = 'https:%s' % disqus_media_location
                 try:
-                    media_url = urllib2.urlopen(disqus_media_location)
-                except urllib2.HTTPError, e:
+                    media_url = urllib.request.urlopen(disqus_media_location)
+                except urllib.request.HTTPError:
                     continue
                 if media_url:
                     media_data = media_url.read()
