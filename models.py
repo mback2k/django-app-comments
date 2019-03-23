@@ -25,10 +25,11 @@ class Author(User):
     @property
     def avatar(self):
         if self.email:
-            hash = hashlib.md5(self.email.lower()).hexdigest()
+            strvalue = self.email.lower()
         else:
-            hash = hashlib.md5(self.name.encode('utf-8')).hexdigest()
-        gravatar_url = "//www.gravatar.com/avatar/%s.jpg?" % hash
+            strvalue = self.name
+        md5hash = hashlib.md5(strvalue.encode('utf-8')).hexdigest()
+        gravatar_url = "//www.gravatar.com/avatar/%s.jpg?" % md5hash
         if self.email:
             gravatar_url += urllib.parse.urlencode({'d': 'retro', 's': 64})
         else:
