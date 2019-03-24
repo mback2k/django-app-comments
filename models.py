@@ -191,4 +191,4 @@ def handle_post_pre_save_signal(sender, instance, update_fields, **kwargs):
 def handle_post_post_save_signal(sender, instance, update_fields, **kwargs):
     from .tasks import clean_post_content
     if not instance.content_cleaned:
-        clean_post_content.apply_async(countdown=1, kwargs={'post_id': instance.id})
+        clean_post_content.apply_async(kwargs={'post_id': instance.id})

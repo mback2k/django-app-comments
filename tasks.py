@@ -86,6 +86,13 @@ def clean_post_content(post_id):
     except Post.DoesNotExist as e:
         raise clean_post_content.retry(exc=e)
 
+@periodic_task(run_every=crontab(minute=12), ignore_result=True)
+def clean_uncleaned_posts():
+    check_posts = Post.objects.exclude(is_deleted=True).exclude(is_spam=True)
+    uncleaned_posts = check_posts.filter(content_cleaned__isnull=True)
+    for post in uncleaned_posts:
+        post.clean_content()
+
 #@periodic_task(run_every=crontab(minute=42), ignore_result=True)
 def purge_deleted_posts():
     delete_age = timezone.now() - datetime.timedelta(days=1)
