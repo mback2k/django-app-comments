@@ -69,7 +69,7 @@ class Thread(models.Model):
 
     @property
     def first_active_post(self):
-        return self.posts.filter(parent=None).exclude(Q(is_deleted=True) | Q(is_spam=True)).filter(is_approved=True).get()
+        return self.posts.filter(parent=None).exclude(Q(is_deleted=True) | Q(is_spam=True) | Q(is_approved=False)).get()
 
 class Post(models.Model):
     parent = models.ForeignKey('self', related_name='posts', blank=True, null=True)
@@ -139,7 +139,7 @@ class Post(models.Model):
 
     @property
     def active_posts(self):
-        return self.posts.exclude(Q(is_deleted=True) | Q(is_spam=True)).filter(is_approved=True)
+        return self.posts.exclude(Q(is_deleted=True) | Q(is_spam=True) | Q(is_approved=False))
 
     @property
     def is_editable(self):
