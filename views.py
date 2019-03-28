@@ -20,6 +20,7 @@ def show_threads_latest(request, category, filter='open'):
         thread_list = Thread.objects.filter(category=category)
     else:
         thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
+        thread_list = thread_list.filter(posts__parent=None, posts__is_approved=True).distinct()
     if filter == 'open':
         thread_list = thread_list.filter(is_closed=False)
     elif filter == 'closed':
