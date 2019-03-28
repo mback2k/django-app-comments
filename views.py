@@ -15,12 +15,17 @@ from .forms import PostNewForm, PostReplyForm, PostEditForm
 from .tasks import notification_post_moderation_pending, notification_post_approved, notification_post_new_reply
 import os.path, datetime
 
-def show_threads_latest(request, category, filter='open'):
+def get_threads(request, category):
+    thread_list = Thread.objects.filter(category=category)
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
-        thread_list = Thread.objects.filter(category=category)
+        thread_list = thread_list.filter(posts__parent=None, Q(posts__is_deleted=False, posts__is_spam=False) | Q(posts__tstamp__gte=yesterday))
     else:
-        thread_list = Thread.objects.filter(category=category).exclude(is_deleted=True)
-        thread_list = thread_list.filter(posts__parent=None, posts__is_approved=True).distinct()
+        thread_list = thread_list.exclude(is_deleted=True)
+        thread_list = thread_list.filter(posts__parent=None, posts__is_deleted=False, posts__is_spam=False, posts__is_approved=True)
+    return thread_list.distinct()
+
+def show_threads_latest(request, category, filter='open'):
+    thread_list = get_threads(request, category)
     if filter == 'open':
         thread_list = thread_list.filter(is_closed=False)
     elif filter == 'closed':
@@ -85,11 +90,8 @@ def show_threads(request, category, filter='open'):
     return render(request, 'show_threads.html', template_values)
 
 def show_posts_latest(request, category, thread_id):
-    if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
-        thread = get_object_or_404(Thread, category=category, id=thread_id)
-    else:
-        thread = get_object_or_404(Thread, category=category, id=thread_id, is_deleted=False)
-    return thread
+    thread_list = get_threads(request, category)
+    return get_object_or_404(thread_list, id=thread_id)
 
 def show_posts_etag(request, category, thread_id):
     if len(messages.get_messages(request)):
