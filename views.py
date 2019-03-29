@@ -19,6 +19,7 @@ import os.path, datetime
 def get_threads(request, category):
     thread_list = Thread.objects.filter(category=category)
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
+        yesterday = timezone.now() - datetime.timedelta(days=1)
         thread_list = thread_list.filter(Q(posts__parent=None), Q(posts__is_deleted=False, posts__is_spam=False) | Q(posts__tstamp__gte=yesterday))
     else:
         thread_list = thread_list.exclude(is_deleted=True)
