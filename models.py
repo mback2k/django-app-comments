@@ -65,7 +65,7 @@ class Thread(models.Model):
     @property
     def first_staff_post(self):
         yesterday = timezone.now() - datetime.timedelta(days=1)
-        return self.posts.filter(parent=None).exclude(Q(is_deleted=True) | Q(is_spam=True), tstamp__lt=yesterday).get()
+        return self.posts.filter(parent=None).exclude(Q(is_deleted=True) | Q(is_spam=True), Q(tstamp__lt=yesterday)).get()
 
     @property
     def first_active_post(self):
@@ -135,7 +135,7 @@ class Post(models.Model):
     @property
     def staff_posts(self):
         yesterday = timezone.now() - datetime.timedelta(days=1)
-        return self.posts.exclude(Q(is_deleted=True) | Q(is_spam=True), tstamp__lt=yesterday)
+        return self.posts.exclude(Q(is_deleted=True) | Q(is_spam=True), Q(tstamp__lt=yesterday))
 
     @property
     def active_posts(self):

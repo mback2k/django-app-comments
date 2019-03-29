@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.forms import inlineformset_factory
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from .models import Author, Thread, Post, Vote, Media, Attachment
 from .forms import PostNewForm, PostReplyForm, PostEditForm
@@ -18,10 +19,10 @@ import os.path, datetime
 def get_threads(request, category):
     thread_list = Thread.objects.filter(category=category)
     if request.user.has_perm('comments.change_post') or request.user.has_perm('comments.delete_post'):
-        thread_list = thread_list.filter(posts__parent=None, Q(posts__is_deleted=False, posts__is_spam=False) | Q(posts__tstamp__gte=yesterday))
+        thread_list = thread_list.filter(Q(posts__parent=None), Q(posts__is_deleted=False, posts__is_spam=False) | Q(posts__tstamp__gte=yesterday))
     else:
         thread_list = thread_list.exclude(is_deleted=True)
-        thread_list = thread_list.filter(posts__parent=None, posts__is_deleted=False, posts__is_spam=False, posts__is_approved=True)
+        thread_list = thread_list.filter(Q(posts__parent=None), Q(posts__is_deleted=False, posts__is_spam=False, posts__is_approved=True))
     return thread_list.distinct()
 
 def show_threads_latest(request, category, filter='open'):
