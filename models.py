@@ -7,8 +7,8 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone, html, safestring
 from django.dispatch import receiver
-from lxml.html import clean
 import urllib.parse, hashlib, datetime
+import threading, bleach
 
 class Author(User):
     class Meta:
@@ -89,9 +89,9 @@ class Post(models.Model):
     is_spam = models.BooleanField(_('Is spam'), blank=True, default=False)
     is_highlighted = models.BooleanField(_('Is highlighted'), blank=True, default=False)
 
-    cleaner = clean.Cleaner(allow_tags=('br', 'p', 'a', 'b', 'i', 'strong', 'em'),
-                            remove_unknown_tags=False, style=True, links=True,
-                            page_structure=True, safe_attrs_only=True, add_nofollow=True)
+    cleaner_sem = threading.Semaphore()
+    cleaner = bleach.Cleaner(tags=('br', 'p', 'a', 'b', 'i', 'strong', 'em'),
+                             filters=[bleach.linkifier.LinkifyFilter])
 
     class Meta:
         ordering = ('crdate', 'tstamp')
@@ -111,16 +111,18 @@ class Post(models.Model):
     get_cleaned_content.admin_order_field = content_cleaned
     get_cleaned_content.short_description = _('Comment')
 
+    def fix_linebreaks(self, content):
+        content = content.replace('<p>', '')
+        content = content.replace('</p>', '\n\n')
+        content = content.replace('<br>', '\n')
+        content = content.replace('<br/>', '\n')
+        content = content.replace('<br />', '\n')
+        return html.linebreaks(content)
+
     def clean_content(self, commit=True):
-        cleaned_content = self.content
-        cleaned_content = cleaned_content.replace('<p>', '')
-        cleaned_content = cleaned_content.replace('</p>', '\n\n')
-        cleaned_content = cleaned_content.replace('<br>', '\n')
-        cleaned_content = cleaned_content.replace('<br />', '\n')
-        cleaned_content = html.linebreaks(cleaned_content)
-        cleaned_content = clean.autolink_html(cleaned_content)
-        cleaned_content = self.cleaner.clean_html(cleaned_content)
-        self.content_cleaned = cleaned_content
+        fixed_linebreaks = self.fix_linebreaks(self.content)
+        with self.cleaner_sem:
+            self.content_cleaned = self.cleaner.clean(fixed_linebreaks)
         if commit and self.id:
             self.save(update_fields=('content_cleaned',))
         return self.content_cleaned
