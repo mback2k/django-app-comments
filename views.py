@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import condition
 from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect, Http404
+from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.shortcuts import render, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
@@ -197,10 +198,10 @@ def new_post(request, category):
             notification_post_moderation_pending.apply_async(countdown=1, kwargs={'post_id': post.id, 'mode': 'approval'})
             messages.info(request, _('<strong>Thanks</strong>, your comment has successfully been submitted but requires approval.<br />' \
                                      'You will be informed via email once it has been reviewed and approved.'))
+            return HttpResponseRedirect(reverse('comments:show_threads', kwargs={'category': category}))
         else:
             messages.success(request, _('<strong>Thanks</strong>, your comment has successfully been submitted and posted.'))
-
-        return HttpResponseRedirect(post.thread.get_absolute_url())
+            return HttpResponseRedirect(post.thread.get_absolute_url())
 
     template_values = {
         'category': category,
@@ -252,11 +253,11 @@ def reply_post(request, category, thread_id, parent_id):
             notification_post_moderation_pending.apply_async(countdown=1, kwargs={'post_id': post.id, 'mode': 'approval'})
             messages.info(request, _('<strong>Thanks</strong>, your comment has successfully been submitted but requires approval.<br />' \
                                      'You will be informed via email once it has been reviewed and approved.'))
+            return HttpResponseRedirect(reverse('comments:show_threads', kwargs={'category': category}))
         else:
             notification_post_new_reply.apply_async(countdown=1, kwargs={'post_id': post.id})
             messages.success(request, _('<strong>Thanks</strong>, your comment has successfully been submitted and posted.'))
-
-        return HttpResponseRedirect(post.get_absolute_url())
+            return HttpResponseRedirect(post.get_absolute_url())
 
     template_values = {
         'category': category,
@@ -311,10 +312,10 @@ def edit_post(request, category, thread_id, post_id):
             notification_post_moderation_pending.apply_async(countdown=1, kwargs={'post_id': post.id, 'mode': 'approval'})
             messages.info(request, _('<strong>Thanks</strong>, your comment has successfully been edited but requires approval.<br />' \
                                      'You will be informed via email once it has been reviewed and approved.'))
+            return HttpResponseRedirect(reverse('comments:show_threads', kwargs={'category': category}))
         else:
             messages.success(request, _('<strong>Great</strong>, your comment has successfully been edited.'))
-
-        return HttpResponseRedirect(post.get_absolute_url())
+            return HttpResponseRedirect(post.get_absolute_url())
 
     template_values = {
         'category': category,
