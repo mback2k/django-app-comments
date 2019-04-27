@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required, permission_required
+from django.views.decorators.cache import cache_control
 from django.views.decorators.http import condition
 from django.http import HttpResponsePermanentRedirect, HttpResponseRedirect, Http404
 from django.template import RequestContext
@@ -40,10 +41,11 @@ def show_threads_etag(request, category, filter='open'):
     try:
         thread_list = show_threads_latest(request, category, filter)
         thread_list_posts = Post.objects.filter(thread__in=thread_list)
-        etag = '%d:%d:%d:%d' % (thread_list.count(),
-                                thread_list.latest('tstamp').id,
-                                thread_list_posts.count(),
-                                thread_list_posts.latest('tstamp').id)
+        etag = '%d:%d:%d:%d:%d' % (thread_list.count(),
+                                   thread_list.latest('tstamp').id,
+                                   thread_list_posts.count(),
+                                   thread_list_posts.latest('tstamp').id,
+                                   os.path.getmtime(__file__))
         if request.user.is_authenticated():
             etag += ':%d' % request.user.id
         if filter:
@@ -68,6 +70,7 @@ def show_threads_last_modified(request, category, filter='open'):
     except Thread.DoesNotExist:
         return None
 
+@cache_control(private=True, must_revalidate=True)
 @condition(etag_func=show_threads_etag, last_modified_func=show_threads_last_modified)
 def show_threads(request, category, filter='open'):
     thread_list = show_threads_latest(request, category, filter)
@@ -101,10 +104,11 @@ def show_posts_etag(request, category, thread_id):
     try:
         thread = show_posts_latest(request, category, thread_id)
         thread_latest_post = thread.posts.latest('tstamp')
-        etag = '%d:%d:%d:%d' % (thread.posts.count(),
-                                thread.id,
-                                thread_latest_post.id,
-                                thread_latest_post.vote_sum or 0)
+        etag = '%d:%d:%d:%d:%d' % (thread.posts.count(),
+                                   thread.id,
+                                   thread_latest_post.id,
+                                   thread_latest_post.vote_sum or 0,
+                                   os.path.getmtime(__file__))
         if request.user.is_authenticated():
             etag += ':%d' % request.user.id
         return etag
@@ -125,6 +129,7 @@ def show_posts_last_modified(request, category, thread_id):
     except Http404:
         return None
 
+@cache_control(private=True, must_revalidate=True)
 @condition(etag_func=show_posts_etag, last_modified_func=show_posts_last_modified)
 def show_posts(request, category, thread_id):
     try:
